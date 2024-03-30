@@ -15,6 +15,10 @@ export const messages = {
     ec: 212,
     msg: 'Activate email to continue'
   },
+  BAD_REQUEST: {
+    ec: 400,
+    msg: 'Bad request'
+  },
   NOT_FOUND: {
     ec: 404,
     msg: 'API not found'
@@ -24,8 +28,12 @@ export const messages = {
     msg: 'Email existed already'
   },
   SIGN_IN_ERROR: {
-    ec: 412,
+    ec: 411,
     msg: 'Wrong sign-in information'
+  },
+  INFO_NOT_EXIST: {
+    ec: 412,
+    msg: 'Information does not exist'
   },
   ACCESS_TOKEN_EXPIRED: {
     ec: 419,

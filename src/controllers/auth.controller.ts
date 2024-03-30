@@ -122,6 +122,7 @@ export const signUpByEmail = async (
       const activeToken = createToken({ id: user.id }, 10 * 60) // 10 mins
       mailer.sendActiveMail(user.email, user.familyName, activeToken)
 
+      // after a specific time, delete if user did not activate
       const time = new Date(Date.now() + 15 * 60 * 1000) // 15 mins
       const cron = new CronJob(time, async () => {
         const userCheck = await userRepo.getUser({ id: user.id })
@@ -176,6 +177,6 @@ export const activateEmail = async (
 }
 
 const getUserDTO = (user: IUser) => {
-  const { password, role, isActive, ...userDTO } = user
+  const { password, role, isActive, links, bio, ...userDTO } = user
   return userDTO
 }

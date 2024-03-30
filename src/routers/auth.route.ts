@@ -1,20 +1,20 @@
 import { Router } from 'express'
 
-import { authController } from '../controllers'
+import { authController as controller } from '../controllers'
 import { verifyGoogleToken } from '../middlewares'
 
 const router = Router()
 
 router.route('/google')
-  .get(verifyGoogleToken, authController.signInByGoogle)
+  .get(verifyGoogleToken, controller.signInByGoogle)
 
 router.route('/email/signin')
-  .post(authController.signInByEmail)
+  .post(controller.signInByEmail)
 
 router.route('/email/signup')
-  .post(authController.signUpByEmail)
+  .post(controller.signUpByEmail)
 
 router.route('/activate-email/:activeToken')
-  .get(authController.activateEmail)
+  .get(controller.activateEmail)
 
 export default router

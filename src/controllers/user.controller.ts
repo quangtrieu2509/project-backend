@@ -1,8 +1,11 @@
-import { type Request, type Response, type NextFunction } from 'express'
+import type { Request, Response, NextFunction } from 'express'
 import httpStatus from 'http-status'
+import { v4 } from 'uuid'
 
 import { userRepo } from '../repositories'
-import { getApiResponse } from '../utils'
+import { getApiResponse, getIdFromPayload } from '../utils'
+import { messages } from '../constants'
+import type { RequestPayload } from '../types'
 
 export const createUser = async (
   req: Request,
@@ -17,14 +20,55 @@ export const createUser = async (
   }
 }
 
-export const getUser = async (
+export const getProfile = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
   try {
-    res.status(httpStatus.OK).json(getApiResponse())
+    const user = await userRepo.getProfile({ id: req.params.id })
+    if (user !== null) {
+      return res
+        .status(httpStatus.OK)
+        .json(getApiResponse({ data: getUserDTO(user) }))
+    } else {
+      return res
+        .status(httpStatus.BAD_REQUEST)
+        .json(getApiResponse(messages.INFO_NOT_EXIST))
+    }
   } catch (error) {
     next(error)
   }
+}
+
+export const interactUser = async (
+  req: RequestPayload,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const followingId = req.params.id
+    const followerId = getIdFromPayload(req)
+    const follow: boolean = req.body.follow
+    const existed = await userRepo.checkExisted({ id: followingId })
+    if (existed === null) {
+      return res
+        .status(httpStatus.BAD_REQUEST)
+        .json(getApiResponse(messages.INFO_NOT_EXIST))
+    }
+
+    if (follow) {
+      await userRepo.createFollow({ id: v4(), followerId, followingId })
+    } else {
+      await userRepo.removeFollow({ followerId, followingId })
+    }
+    return res.status(httpStatus.OK).json(getApiResponse(messages.OK))
+  } catch (error) {
+    next(error)
+  }
+}
+
+const getUserDTO = (user: any) => {
+  const { password, email, phoneNumber, accountType, role, isActive, ...userDTO } = user
+  return userDTO
 }

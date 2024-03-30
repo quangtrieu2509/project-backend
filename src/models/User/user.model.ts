@@ -1,15 +1,15 @@
 import { Schema, model } from 'mongoose'
 import bcrypt from 'bcrypt'
 
-import { type IUser } from '../types'
-import { accountTypes, roles } from '../constants'
+import { type IUser } from '../../types'
+import { accountTypes, roles } from '../../constants'
 
 const UserSchema = new Schema(
   {
     id: {
       type: String,
       required: true,
-      index: true
+      index: { unique: true }
     },
     familyName: {
       type: String,
@@ -22,12 +22,15 @@ const UserSchema = new Schema(
     email: {
       type: String,
       required: true,
-      index: true
+      index: { unique: true }
     },
     password: {
       type: String
     },
     phoneNumber: {
+      type: String
+    },
+    address: {
       type: String
     },
     profileImage: {
@@ -48,6 +51,18 @@ const UserSchema = new Schema(
     isActive: {
       type: Boolean,
       default: false
+    },
+    links: {
+      type: {
+        facebook: String,
+        instagram: String,
+        twitter: String,
+        youtube: String,
+        tiktok: String
+      }
+    },
+    bio: {
+      type: String
     }
   },
   {
