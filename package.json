@@ -60,7 +60,7 @@
     "ts-node": "^10.9.1",
     "typescript": "*"
   },
-  "overrides": {
+  "resolutions": {
     "@types/mime": "3.0.4"
   }
 }
