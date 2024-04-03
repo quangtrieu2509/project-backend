@@ -7,13 +7,17 @@ import { verifyToken } from '../middlewares'
 const router = Router()
 
 router
-  .route('/')
-  .post(validation.createUser, controller.createUser)
-  // .get(verifyToken, validation.getUser, controller.getUser)
+  .route('/:id/:type(followers|followings)')
+  .get(verifyToken, controller.getInteractInfo)
 
 router
   .route('/:id')
   .get(verifyToken, controller.getProfile)
   .post(verifyToken, controller.interactUser)
+
+router
+  .route('/')
+  .post(validation.createUser, controller.createUser)
+  // .get(verifyToken, validation.getUser, controller.getUser)
 
 export default router

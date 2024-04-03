@@ -36,7 +36,7 @@ const UserSchema = new Schema(
     profileImage: {
       type: String,
       required: true,
-      default: 'abc'
+      default: '/images/default-avatar.svg'
     },
     accountType: {
       type: String,

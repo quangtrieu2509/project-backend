@@ -1,3 +1,4 @@
+import { privacies } from '../constants'
 import { Follow, User } from '../models'
 import type { IFollow, IUser } from '../types'
 import { omitIsNil } from '../utils'
@@ -83,4 +84,109 @@ export const createFollow = async (follow: IFollow): Promise<IFollow> => {
 
 export const removeFollow = async (filters: any): Promise<IFollow | null> => {
   return await Follow.findOneAndDelete(omitIsNil(filters))
+}
+
+export const getInteractInfo = async (ownerId: string, userId: string, type: string): Promise<any[]> => {
+  let match: object = { anything: 0 }
+  let localField: string = ''
+  if (type === 'followings') {
+    match = { followerId: ownerId }
+    localField = 'followingId'
+  } else if (type === 'followers') {
+    match = { followingId: ownerId }
+    localField = 'followerId'
+  }
+
+  const userList = await Follow.aggregate([
+    {
+      $match: match
+    },
+    {
+      $lookup: {
+        from: 'users',
+        localField,
+        foreignField: 'id',
+        pipeline: [
+          {
+            $project: {
+              _id: 0,
+              id: 1,
+              familyName: 1,
+              givenName: 1,
+              address: 1,
+              profileImage: 1
+            }
+          }
+        ],
+        as: 'user'
+      }
+    },
+    {
+      $addFields: {
+        user: {
+          $arrayElemAt: ['$user', 0]
+        }
+      }
+    },
+    {
+      $lookup: {
+        from: 'trips',
+        localField,
+        foreignField: 'ownerId',
+        pipeline: [
+          {
+            $match:
+            {
+              $expr:
+              { $eq: ['$privacy', privacies.PUBLIC] }
+            }
+          }
+        ],
+        as: 'contributions'
+      }
+    },
+    {
+      $addFields: {
+        contributions: {
+          $size: '$contributions'
+        }
+      }
+    },
+    {
+      $lookup: {
+        from: 'follows',
+        localField,
+        foreignField: 'followingId',
+        pipeline: [
+          {
+            $match:
+            {
+              $expr:
+              {
+                $eq: ['$followerId', userId]
+              }
+            }
+          }
+        ],
+        as: 'isFollowing'
+      }
+    },
+    {
+      $addFields: {
+        isFollowing: {
+          $toBool: {
+            $size: '$isFollowing'
+          }
+        }
+      }
+    },
+    {
+      $project: {
+        _id: 0,
+        followerId: 0,
+        followingId: 0
+      }
+    }
+  ])
+  return userList
 }

@@ -68,6 +68,23 @@ export const interactUser = async (
   }
 }
 
+export const getInteractInfo = async (
+  req: RequestPayload,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const userId = getIdFromPayload(req)
+    const { id, type } = req.params
+
+    const userList = await userRepo.getInteractInfo(id, userId, type)
+
+    return res.status(httpStatus.OK).json(getApiResponse({ data: userList }))
+  } catch (error) {
+    next(error)
+  }
+}
+
 const getUserDTO = (user: any) => {
   const { password, email, phoneNumber, accountType, role, isActive, ...userDTO } = user
   return userDTO
