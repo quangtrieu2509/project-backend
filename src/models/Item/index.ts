@@ -1,0 +1,5 @@
+export * from './item.model'
+export * from './accomm.model'
+export * from './activity.model'
+export * from './attraction.model'
+export * from './dining.model'

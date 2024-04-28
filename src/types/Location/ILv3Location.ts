@@ -5,4 +5,5 @@ export interface ILv3Location {
   coordinates: number[]
   description: string
   images: string[]
+  slug: string
 }

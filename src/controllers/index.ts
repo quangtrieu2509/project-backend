@@ -1,3 +1,6 @@
 export * as userController from './user.controller'
 export * as authController from './auth.controller'
 export * as tripController from './trip.controller'
+export * as locationController from './location.controller'
+export * as itemController from './item.controller'
+export * as reviewController from './review.controller'

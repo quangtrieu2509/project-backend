@@ -28,6 +28,32 @@ const tripSchema = new Schema(
       required: true,
       enum: [privacies.PUBLIC, privacies.PRIVATE]
     },
+    destination: {
+      id: {
+        type: String,
+        required: true
+        // config more if needed
+      },
+      name: {
+        type: String,
+        required: true
+      },
+      details: {
+        type: [String]
+      },
+      image: {
+        type: String,
+        required: true
+      },
+      level: {
+        type: Number,
+        required: true
+      },
+      slug: {
+        type: String,
+        required: true
+      }
+    },
     startDate: {
       type: Date
     },

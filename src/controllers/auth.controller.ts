@@ -1,9 +1,9 @@
 import type { Request, Response, NextFunction } from 'express'
 import httpStatus from 'http-status'
 import bcrypt from 'bcrypt'
-import { v4 } from 'uuid'
 import jwt, { TokenExpiredError } from 'jsonwebtoken'
 import { CronJob } from 'cron'
+import { uid } from 'uid'
 
 import { userRepo } from '../repositories'
 import { createToken, getApiResponse } from '../utils'
@@ -25,7 +25,7 @@ export const signInByGoogle = async (
     // if email do not exist yet
     if (userCheck == null) {
       const newUser: IUser = {
-        id: v4(),
+        id: uid(),
         email,
         profileImage: picture,
         givenName: given_name,
@@ -113,7 +113,7 @@ export const signUpByEmail = async (
     if (userCheck == null) {
       const newUser = {
         ...body,
-        id: v4(),
+        id: uid(),
         accountType: accountTypes.EMAIL,
         role: roles.USER
       }

@@ -32,6 +32,30 @@ export const getProfile = async (filters: any): Promise<any | null> => {
     },
     {
       $lookup: {
+        from: 'trips',
+        localField: 'id',
+        foreignField: 'ownerId',
+        pipeline: [
+          {
+            $match:
+            {
+              $expr:
+              { $eq: ['$privacy', privacies.PUBLIC] }
+            }
+          }
+        ],
+        as: 'contributions'
+      }
+    },
+    {
+      $addFields: {
+        contributions: {
+          $size: '$contributions'
+        }
+      }
+    },
+    {
+      $lookup: {
         from: 'follows',
         localField: 'id',
         foreignField: 'followerId',

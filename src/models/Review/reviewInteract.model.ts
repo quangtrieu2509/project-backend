@@ -1,6 +1,6 @@
 import { Schema, model } from 'mongoose'
 
-import { type ITripInteract } from '../../types'
+import { type IReviewInteract } from '../../types'
 
 const interactSchema = new Schema(
   {
@@ -15,10 +15,10 @@ const interactSchema = new Schema(
       ref: 'user',
       field: 'id'
     },
-    tripId: {
+    reviewId: {
       type: String,
       required: true,
-      ref: 'trip',
+      ref: 'review',
       field: 'id'
     }
   },
@@ -28,4 +28,4 @@ const interactSchema = new Schema(
   }
 )
 
-export const TripInteract = model<ITripInteract>('trip_interact', interactSchema)
+export const ReviewInteract = model<IReviewInteract>('review_interact', interactSchema)

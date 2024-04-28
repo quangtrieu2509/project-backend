@@ -28,8 +28,10 @@
     "mjml": "^4.15.3",
     "mongodb": "^6.3.0",
     "mongoose": "^8.2.0",
+    "mongoose-slug-updater": "^3.3.0",
     "morgan": "^1.10.0",
     "nodemailer": "^6.9.10",
+    "uid": "^2.0.2",
     "uuid": "^9.0.1"
   },
   "devDependencies": {

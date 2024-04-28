@@ -5,6 +5,36 @@ import { tripRepo } from '../repositories'
 import { privacies } from '../constants'
 import type { RequestPayload } from '../types'
 
+export const createTrip = async (
+  req: RequestPayload,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const ownerId = getIdFromPayload(req)
+    const newTrip = await tripRepo.createTrip({ ...req.body, ownerId })
+
+    return res.status(httpStatus.OK).json(getApiResponse({ data: newTrip }))
+  } catch (error) {
+    next(error)
+  }
+}
+
+export const getTrip = async (
+  req: RequestPayload,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { id } = req.params
+    const trip = await tripRepo.findTrip({ id })
+
+    return res.status(httpStatus.OK).json(getApiResponse({ data: trip }))
+  } catch (error) {
+    next(error)
+  }
+}
+
 export const getProfileTrips = async (
   req: RequestPayload,
   res: Response,
@@ -28,16 +58,30 @@ export const getProfileTrips = async (
   }
 }
 
+export const getHomeTrips = async (
+  req: RequestPayload,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const ownerId = getIdFromPayload(req)
+
+    const trips = await tripRepo.getHomeTrips({ ownerId })
+
+    return res.status(httpStatus.OK).json(getApiResponse({ data: trips }))
+  } catch (error) {
+    next(error)
+  }
+}
+
 const getTripDTO = (userId: string, trip: any): any => {
-  const { likes, saves, ...rest } = trip
+  const { likes, ...rest } = trip
   return {
     ...rest,
     isOwner: (trip.owner.id === userId),
     interact: {
       likes: likes.length,
-      saves: saves.length,
-      liked: likes.includes(userId),
-      saved: saves.includes(userId)
+      liked: likes.includes(userId)
     }
   }
 }

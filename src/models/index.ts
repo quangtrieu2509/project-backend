@@ -1,3 +1,5 @@
 export * from './User'
-export * from './Location'
 export * from './Trip'
+export * from './location.model'
+export * from './Item'
+export * from './Review'
