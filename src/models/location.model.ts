@@ -50,8 +50,18 @@ const locationSchema = new Schema(
       required: true
     },
     images: {
-      type: [String],
-      required: true
+      type: [{
+        name: {
+          type: String,
+          required: true
+        },
+        url: {
+          type: String,
+          required: true
+        }
+      }],
+      required: true,
+      default: []
     },
     slug: {
       type: String,

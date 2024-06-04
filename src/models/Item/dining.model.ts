@@ -1,8 +1,8 @@
 import { Schema, model } from 'mongoose'
 
-import { type IDinning } from '../../types'
+import { type IDining } from '../../types'
 
-const dinningSchema = new Schema(
+const diningSchema = new Schema(
   {
     id: {
       type: String,
@@ -57,4 +57,4 @@ const dinningSchema = new Schema(
   }
 )
 
-export const Dinning = model<IDinning>('dinning', dinningSchema)
+export const Dining = model<IDining>('dining', diningSchema)

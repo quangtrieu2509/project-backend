@@ -20,6 +20,7 @@
     "dotenv": "^16.4.5",
     "express": "^4.18.2",
     "express-validation": "^4.1.0",
+    "firebase-admin": "^12.1.0",
     "helmet": "^7.1.0",
     "http-status": "^1.7.4",
     "joi": "^17.12.2",
@@ -30,6 +31,7 @@
     "mongoose": "^8.2.0",
     "mongoose-slug-updater": "^3.3.0",
     "morgan": "^1.10.0",
+    "multer": "^1.4.5-lts.1",
     "nodemailer": "^6.9.10",
     "uid": "^2.0.2",
     "uuid": "^9.0.1"
@@ -44,6 +46,7 @@
     "@types/mjml": "^4.7.4",
     "@types/mocha": "^10.0.1",
     "@types/morgan": "^1.9.4",
+    "@types/multer": "^1.4.11",
     "@types/node": "^20.1.2",
     "@types/nodemailer": "^6.4.14",
     "@types/uuid": "^9.0.1",

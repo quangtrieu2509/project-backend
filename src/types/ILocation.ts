@@ -9,7 +9,10 @@ export interface ILocation {
     slug: string
   }>
   description: string
-  images: string[]
+  images: Array<{
+    name: string
+    url: string
+  }>
   slug: string
   level: number
 }

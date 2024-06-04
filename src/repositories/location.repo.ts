@@ -48,13 +48,7 @@ export const searchLocations = async (query: string, limit: number = 6): Promise
         name: 1,
         slug: 1,
         level: 1,
-        details: {
-          $map: {
-            input: '$ancestors',
-            as: 'anc',
-            in: '$$anc.name'
-          }
-        },
+        ancestors: 1,
         image: { $arrayElemAt: ['$images', 0] }
       }
     },

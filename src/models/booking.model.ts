@@ -1,8 +1,9 @@
 import { Schema, model } from 'mongoose'
 
-import { type IReview } from '../../types'
+import type { IBooking } from '../types'
+import { bookingStates } from '../constants'
 
-const reviewSchema = new Schema(
+const bookingSchema = new Schema(
   {
     id: {
       type: String,
@@ -21,40 +22,36 @@ const reviewSchema = new Schema(
       ref: 'item',
       field: 'id'
     },
-    rate: {
-      type: Number,
+    note: {
+      type: String,
       required: true
     },
-    travelDate: {
+    state: {
+      type: String,
+      required: true,
+      default: bookingStates.PENDING
+    },
+    date: {
       type: Date,
       required: true
     },
-    tripType: {
+    startTime: {
       type: String,
       required: true
     },
-    content: {
+    phoneNumber: {
       type: String,
       required: true
     },
-    images: {
-      type: [{
-        name: {
-          type: String,
-          required: true
-        },
-        url: {
-          type: String,
-          required: true
-        }
-      }],
-      required: true,
-      default: []
+    email: {
+      type: String,
+      required: true
     },
-    isActive: {
-      type: Boolean,
-      required: true,
-      default: false
+    numOfGuests: {
+      type: Number
+    },
+    numOfRooms: {
+      type: Number
     }
   },
   {
@@ -63,4 +60,4 @@ const reviewSchema = new Schema(
   }
 )
 
-export const Review = model<IReview>('review', reviewSchema)
+export const Booking = model<IBooking>('booking', bookingSchema)

@@ -1,4 +1,4 @@
-export interface IDinning {
+export interface IDining {
   id: string
   itemId: string
   categories: string[]

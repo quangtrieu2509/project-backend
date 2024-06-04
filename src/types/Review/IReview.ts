@@ -6,6 +6,9 @@ export interface IReview {
   travelDate: Date
   tripType: string
   content: string
-  images: string[]
+  images: Array<{
+    name: string
+    url: string
+  }>
   isActive: boolean
 }

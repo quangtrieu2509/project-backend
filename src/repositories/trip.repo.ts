@@ -1,12 +1,163 @@
 import { uid } from 'uid'
 
-import { Trip } from '../models'
-import type { ITrip } from '../types'
+import { ItineraryItem, SavedItem, Trip } from '../models'
+import type { IItineraryItem, ISavedItem, ITrip } from '../types'
 import { omitIsNil } from '../utils'
 
 export const createTrip = async (trip: ITrip): Promise<ITrip> => {
   const newTrip = new Trip({ ...trip, id: uid() })
   return await newTrip.save()
+}
+
+export const addItem = async (item: ISavedItem): Promise<ISavedItem> => {
+  const newItem = new SavedItem({ ...item, id: uid() })
+  return await newItem.save()
+}
+
+export const addItineraryItem = async (item: IItineraryItem): Promise<IItineraryItem> => {
+  const newItem = new ItineraryItem({ ...item, id: uid() })
+  return await newItem.save()
+}
+
+export const removeItem = async (id: string): Promise<any | null> => {
+  const savedItemPromise = SavedItem.findOneAndDelete({ id })
+  const itineraryItemPromise = ItineraryItem.deleteMany({ savedItemId: id })
+  return await Promise.all([savedItemPromise, itineraryItemPromise])
+}
+
+export const updateSavedItem = async (id: string, data: any): Promise<any> => {
+  return await SavedItem.findOneAndUpdate({ id }, data)
+}
+
+export const updateItineraryItem = async (id: string, data: any): Promise<any> => {
+  return await ItineraryItem.findOneAndUpdate({ id }, data)
+}
+
+export const getSavedItems = async (tripId: string): Promise<any[]> => {
+  const items = await SavedItem.aggregate([
+    {
+      $match: { tripId }
+    },
+    {
+      $lookup: {
+        from: 'items',
+        localField: 'itemId',
+        foreignField: 'id',
+        pipeline: [
+          {
+            $project: {
+              _id: 0,
+              id: 1,
+              name: 1,
+              categories: 1,
+              ancestors: 1,
+              images: 1,
+              description: 1,
+              type: 1
+            }
+          }
+        ],
+        as: 'item'
+      }
+    },
+    {
+      $addFields: {
+        item: { $arrayElemAt: ['$item', 0] }
+      }
+    },
+    stdReviewLookup,
+    {
+      $addFields: {
+        'item.review': {
+          rate: { $avg: '$reviewCounts.rate' },
+          total: { $size: '$reviewCounts' }
+        },
+        'item.image': { $arrayElemAt: ['$item.images', 0] }
+      }
+    },
+    {
+      $project: {
+        _id: 0,
+        itemId: 0,
+        reviewCounts: 0,
+        'item.images': 0
+      }
+    }
+  ])
+  return items
+}
+
+export const getItineraryItems = async (tripId: string): Promise<any[]> => {
+  const items = await ItineraryItem.aggregate([
+    {
+      $match: { tripId }
+    },
+    {
+      $lookup: {
+        from: 'saved_items',
+        localField: 'savedItemId',
+        foreignField: 'id',
+        as: 'savedItem'
+      }
+    },
+    {
+      $addFields: {
+        item: { $arrayElemAt: ['$savedItem', 0] }
+      }
+    },
+    {
+      $lookup: {
+        from: 'items',
+        localField: 'savedItem.itemId',
+        foreignField: 'id',
+        pipeline: [
+          {
+            $project: {
+              _id: 0,
+              id: 1,
+              name: 1,
+              categories: 1,
+              ancestors: 1,
+              images: 1,
+              description: 1,
+              type: 1
+            }
+          }
+        ],
+        as: 'item'
+      }
+    },
+    {
+      $addFields: {
+        item: { $arrayElemAt: ['$item', 0] }
+      }
+    },
+    stdReviewLookup,
+    {
+      $addFields: {
+        'item.review': {
+          rate: { $avg: '$reviewCounts.rate' },
+          total: { $size: '$reviewCounts' }
+        },
+        'item.image': { $arrayElemAt: ['$item.images', 0] }
+      }
+    },
+    {
+      $project: {
+        _id: 0,
+        itemId: 0,
+        reviewCounts: 0,
+        'item.images': 0,
+        savedItem: 0
+      }
+    }
+  ])
+  return items
+}
+
+export const getOwnerId = async (filters: any): Promise<string | null> => {
+  const trip = await Trip.findOne(omitIsNil(filters), { _id: 0, ownerId: 1 })
+  return trip === null ? trip : trip.ownerId
 }
 
 const stdUserLookup = {
@@ -47,6 +198,43 @@ const stdLikeLookup = {
   }
 }
 
+const stdLocationLookup = {
+  $lookup: {
+    from: 'locations',
+    localField: 'locationId',
+    foreignField: 'id',
+    pipeline: [
+      {
+        $project: {
+          _id: 0,
+          coordinates: 0,
+          description: 0,
+          images: 0,
+          'ancestors._id': 0
+        }
+      }
+    ],
+    as: 'destination'
+  }
+}
+
+const stdReviewLookup = {
+  $lookup: {
+    from: 'reviews',
+    localField: 'item.id',
+    foreignField: 'itemId',
+    pipeline: [
+      {
+        $project: {
+          _id: 0,
+          rate: 1
+        }
+      }
+    ],
+    as: 'reviewCounts'
+  }
+}
+
 export const getTrips = async (filters: any): Promise<any[]> => {
   const trips = await Trip.aggregate([
     {
@@ -54,10 +242,14 @@ export const getTrips = async (filters: any): Promise<any[]> => {
     },
     stdUserLookup,
     stdLikeLookup,
+    stdLocationLookup,
     {
       $addFields: {
         owner: {
           $arrayElemAt: ['$owner', 0]
+        },
+        destination: {
+          $arrayElemAt: ['$destination', 0]
         },
         likes: '$likes.userId'
       }
@@ -67,6 +259,59 @@ export const getTrips = async (filters: any): Promise<any[]> => {
         _id: 0,
         ownerId: 0,
         description: 0
+      }
+    },
+    {
+      $sort: {
+        createdAt: -1
+      }
+    }
+  ])
+
+  return trips
+}
+
+export const getDrawerTrips = async (filters: any): Promise<any[]> => {
+  const trips = await Trip.aggregate([
+    {
+      $match: omitIsNil(filters)
+    },
+    stdLocationLookup,
+    {
+      $lookup: {
+        from: 'saved_items',
+        localField: 'id',
+        foreignField: 'tripId',
+        pipeline: [
+          {
+            $project:
+            {
+              _id: 0,
+              id: 1,
+              itemId: 1
+            }
+          }
+        ],
+        as: 'saves'
+      }
+    },
+    {
+      $addFields: {
+        destination: {
+          $arrayElemAt: ['$destination', 0]
+        }
+      }
+    },
+    {
+      $project: {
+        _id: 0,
+        ownerId: 0,
+        description: 0
+      }
+    },
+    {
+      $sort: {
+        createdAt: -1
       }
     }
   ])
@@ -80,12 +325,16 @@ export const getHomeTrips = async (filters: any): Promise<any[]> => {
       $match: omitIsNil(filters)
     },
     stdLikeLookup,
+    stdLocationLookup,
     {
       $addFields: {
         interact: {
           likes: {
             $size: '$likes'
           }
+        },
+        destination: {
+          $arrayElemAt: ['$destination', 0]
         }
       }
     },
@@ -93,6 +342,11 @@ export const getHomeTrips = async (filters: any): Promise<any[]> => {
       $project: {
         _id: 0,
         description: 0
+      }
+    },
+    {
+      $sort: {
+        createdAt: -1
       }
     }
   ])
@@ -107,6 +361,7 @@ export const findTrip = async (filters: any): Promise<any | null> => {
     },
     stdUserLookup,
     stdLikeLookup,
+    stdLocationLookup,
     {
       $addFields: {
         owner: {
@@ -116,6 +371,9 @@ export const findTrip = async (filters: any): Promise<any | null> => {
           likes: {
             $size: '$likes'
           }
+        },
+        destination: {
+          $arrayElemAt: ['$destination', 0]
         }
       }
     },

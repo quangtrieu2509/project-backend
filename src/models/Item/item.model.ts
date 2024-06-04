@@ -9,6 +9,12 @@ const itemSchema = new Schema(
       required: true,
       index: { unique: true }
     },
+    ownerId: {
+      type: String,
+      required: true,
+      ref: 'user',
+      field: 'id'
+    },
     ancestors: {
       type: [{
         id: {
@@ -37,6 +43,10 @@ const itemSchema = new Schema(
       type: String,
       required: true
     },
+    description: {
+      type: String,
+      required: true
+    },
     coordinates: {
       type: [Number]
     },
@@ -58,6 +68,74 @@ const itemSchema = new Schema(
     type: {
       type: String,
       required: true
+    },
+    images: {
+      type: [{
+        name: {
+          type: String,
+          required: true
+        },
+        url: {
+          type: String,
+          required: true
+        }
+      }],
+      required: true,
+      default: []
+    },
+    categories: {
+      type: [String],
+      required: true
+    },
+    price: {
+      type: {
+        level: {
+          type: String,
+          required: true
+        },
+        range: {
+          type: [Number]
+        }
+      }
+    },
+    hours: {
+      type: [{
+        type: {
+          open: {
+            type: String,
+            required: true
+          },
+          close: {
+            type: String,
+            required: true
+          }
+        },
+        default: null
+      }]
+    },
+    features: {
+      type: [String]
+    },
+    amenities: {
+      type: [String]
+    },
+    ticketPrice: {
+      type: [Number]
+    },
+    duration: {
+      type: Number
+    },
+    ages: {
+      type: [Number]
+    },
+    included: {
+      type: [String]
+    },
+    excluded: {
+      type: [String]
+    },
+    requirements: {
+      type: [String]
     }
   },
   {

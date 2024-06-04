@@ -6,6 +6,8 @@ import tripRouters from './trip.route'
 import locationRouters from './location.route'
 import itemRouters from './item.route'
 import reviewRouters from './review.route'
+import uploadRouters from './upload.route'
+import bookingRouters from './booking.route'
 
 const router = Router()
 
@@ -15,5 +17,7 @@ router.use('/trip', tripRouters)
 router.use('/location', locationRouters)
 router.use('/item', itemRouters)
 router.use('/review', reviewRouters)
+router.use('/upload', uploadRouters)
+router.use('/booking', bookingRouters)
 
 export default router

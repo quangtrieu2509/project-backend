@@ -1,4 +1,4 @@
-export interface IAccomm {
+export interface ILodging {
   id: string
   itemId: string
   categories: string[]

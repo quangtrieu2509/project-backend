@@ -16,6 +16,12 @@ const tripSchema = new Schema(
       ref: 'user',
       field: 'id'
     },
+    locationId: {
+      type: String,
+      required: true,
+      ref: 'location',
+      field: 'id'
+    },
     title: {
       type: String,
       required: true
@@ -28,32 +34,6 @@ const tripSchema = new Schema(
       required: true,
       enum: [privacies.PUBLIC, privacies.PRIVATE]
     },
-    destination: {
-      id: {
-        type: String,
-        required: true
-        // config more if needed
-      },
-      name: {
-        type: String,
-        required: true
-      },
-      details: {
-        type: [String]
-      },
-      image: {
-        type: String,
-        required: true
-      },
-      level: {
-        type: Number,
-        required: true
-      },
-      slug: {
-        type: String,
-        required: true
-      }
-    },
     startDate: {
       type: Date
     },
@@ -62,11 +42,18 @@ const tripSchema = new Schema(
       required: true,
       default: 1
     },
-    saves: {
-      type: [Object]
-    },
-    itinerary: {
-      type: [Object]
+    image: {
+      type: {
+        name: {
+          type: String,
+          required: true
+        },
+        url: {
+          type: String,
+          required: true
+        }
+      },
+      required: true
     }
   },
   {

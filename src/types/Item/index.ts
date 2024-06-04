@@ -1,5 +1,5 @@
 export * from './IAttraction'
-export * from './IDinning'
-export * from './IAccomm'
+export * from './IDining'
+export * from './ILodging'
 export * from './IActivity'
 export * from './IItem'

@@ -1,6 +1,6 @@
 import { Schema, model } from 'mongoose'
 
-import { type IAccomm } from '../../types'
+import { type ILodging } from '../../types'
 
 const accommSchema = new Schema(
   {
@@ -41,4 +41,4 @@ const accommSchema = new Schema(
   }
 )
 
-export const Accomm = model<IAccomm>('accomm', accommSchema)
+export const Accomm = model<ILodging>('accomm', accommSchema)

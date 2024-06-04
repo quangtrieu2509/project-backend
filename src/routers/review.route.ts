@@ -6,11 +6,15 @@ import { verifyToken } from '../middlewares'
 const router = Router()
 
 router
+  .route('/rate/:itemId')
+  .get(controller.getOverviewRates)
+
+router
+  .route('/:itemId')
+  .get(controller.getReviews)
+
+router
   .route('/')
   .post(verifyToken, controller.createReview)
-  // .delete(async (req, res, next) => {
-  //   await Review.deleteMany()
-  //   res.json('ok')
-  // })
 
 export default router
