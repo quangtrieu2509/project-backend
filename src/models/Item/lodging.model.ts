@@ -2,7 +2,7 @@ import { Schema, model } from 'mongoose'
 
 import { type ILodging } from '../../types'
 
-const accommSchema = new Schema(
+const lodgingSchema = new Schema(
   {
     id: {
       type: String,
@@ -41,4 +41,4 @@ const accommSchema = new Schema(
   }
 )
 
-export const Accomm = model<ILodging>('accomm', accommSchema)
+export const Lodging = model<ILodging>('lodging', lodgingSchema)

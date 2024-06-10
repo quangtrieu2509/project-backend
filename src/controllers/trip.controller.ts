@@ -1,9 +1,10 @@
 import type { NextFunction, Request, Response } from 'express'
 import httpStatus from 'http-status'
 import { getApiResponse, getIdFromPayload } from '../utils'
-import { tripRepo } from '../repositories'
+import { tripRepo, userRepo } from '../repositories'
 import { messages, privacies } from '../constants'
 import type { RequestPayload } from '../types'
+import { v4 } from 'uuid'
 
 export const createTrip = async (
   req: RequestPayload,
@@ -30,6 +31,33 @@ export const getTrip = async (
     const trip = await tripRepo.findTrip({ id })
 
     return res.status(httpStatus.OK).json(getApiResponse({ data: trip }))
+  } catch (error) {
+    next(error)
+  }
+}
+
+export const interactTrip = async (
+  req: RequestPayload,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const tripId = req.params.id
+    const userId = getIdFromPayload(req)
+    const like: boolean = req.body.like
+    const existed = await userRepo.checkExisted({ id: userId })
+    if (existed === null) {
+      return res
+        .status(httpStatus.BAD_REQUEST)
+        .json(getApiResponse(messages.INFO_NOT_EXIST))
+    }
+
+    if (like) {
+      await tripRepo.createInteract({ id: v4(), tripId, userId })
+    } else {
+      await tripRepo.removeInteract({ tripId, userId })
+    }
+    return res.status(httpStatus.OK).json(getApiResponse(messages.OK))
   } catch (error) {
     next(error)
   }

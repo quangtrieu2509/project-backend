@@ -40,6 +40,7 @@ router
 router
   .route('/:id')
   .get(verifyToken, controller.getTrip)
+  .post(verifyToken, controller.interactTrip)
 
 router
   .route('/')

@@ -83,6 +83,11 @@ const itemSchema = new Schema(
       required: true,
       default: []
     },
+    isReservable: {
+      type: Boolean,
+      required: true,
+      default: false
+    },
     categories: {
       type: [String],
       required: true

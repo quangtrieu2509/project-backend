@@ -1,6 +1,6 @@
 export const itemTypes = {
   ATTRACTION: 'attraction',
-  ACCOMM: 'accomm',
+  LODGING: 'lodging',
   DINING: 'dining',
   ACTIVITY: 'activity',
   LOCATION: 'location'

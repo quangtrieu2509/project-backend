@@ -1,7 +1,7 @@
 import { uid } from 'uid'
 
-import { ItineraryItem, SavedItem, Trip } from '../models'
-import type { IItineraryItem, ISavedItem, ITrip } from '../types'
+import { ItineraryItem, SavedItem, Trip, TripInteract } from '../models'
+import type { IItineraryItem, ISavedItem, ITrip, ITripInteract } from '../types'
 import { omitIsNil } from '../utils'
 
 export const createTrip = async (trip: ITrip): Promise<ITrip> => {
@@ -53,7 +53,8 @@ export const getSavedItems = async (tripId: string): Promise<any[]> => {
               ancestors: 1,
               images: 1,
               description: 1,
-              type: 1
+              type: 1,
+              isReservable: 1
             }
           }
         ],
@@ -385,4 +386,13 @@ export const findTrip = async (filters: any): Promise<any | null> => {
     }
   ])
   return trip.length === 0 ? null : trip[0]
+}
+
+export const createInteract = async (interact: ITripInteract): Promise<ITripInteract> => {
+  const newInteract = await TripInteract.create(interact)
+  return await newInteract.toObject()
+}
+
+export const removeInteract = async (filters: any): Promise<ITripInteract | null> => {
+  return await TripInteract.findOneAndDelete(omitIsNil(filters))
 }

@@ -21,6 +21,7 @@ export interface IItem {
     email?: string
   }
   type: string
+  isReservable: boolean
   categories: string[]
   price?: {
     level: string
