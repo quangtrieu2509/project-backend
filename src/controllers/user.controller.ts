@@ -2,7 +2,7 @@ import type { Request, Response, NextFunction } from 'express'
 import httpStatus from 'http-status'
 import { v4 } from 'uuid'
 
-import { userRepo } from '../repositories'
+import { notiRepo, userRepo } from '../repositories'
 import { getApiResponse, getIdFromPayload } from '../utils'
 import { messages } from '../constants'
 import type { RequestPayload } from '../types'
@@ -48,7 +48,7 @@ export const interactUser = async (
 ) => {
   try {
     const followingId = req.params.id
-    const followerId = getIdFromPayload(req)
+    const followerId = getIdFromPayload(req.payload)
     const follow: boolean = req.body.follow
     const existed = await userRepo.checkExisted({ id: followingId })
     if (existed === null) {
@@ -59,6 +59,7 @@ export const interactUser = async (
 
     if (follow) {
       await userRepo.createFollow({ id: v4(), followerId, followingId })
+      void notiRepo.createUserInteractNoti(followerId, followingId)
     } else {
       await userRepo.removeFollow({ followerId, followingId })
     }
@@ -74,7 +75,7 @@ export const getInteractInfo = async (
   next: NextFunction
 ) => {
   try {
-    const userId = getIdFromPayload(req)
+    const userId = getIdFromPayload(req.payload)
     const { id, type } = req.params
 
     const userList = await userRepo.getInteractInfo(id, userId, type)

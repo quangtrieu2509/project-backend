@@ -12,7 +12,7 @@ export const createBooking = async (
   next: NextFunction
 ) => {
   try {
-    const userId = getIdFromPayload(req)
+    const userId = getIdFromPayload(req.payload)
     const newBooking = await bookingRepo.createBooking({ ...req.body, userId, id: uid() })
 
     return res.status(httpStatus.OK).json(getApiResponse({ data: newBooking }))
@@ -27,7 +27,7 @@ export const updateBooking = async (
   next: NextFunction
 ) => {
   try {
-    const userId = getIdFromPayload(req)
+    const userId = getIdFromPayload(req.payload)
     const booking = await bookingRepo.updateBooking({ userId, id: req.params.id }, req.body)
 
     if (booking === null) return res.status(httpStatus.BAD_REQUEST).json(getApiResponse(messages.BAD_REQUEST))
@@ -61,7 +61,7 @@ export const getBookings = async (
   next: NextFunction
 ) => {
   try {
-    const userId = getIdFromPayload(req)
+    const userId = getIdFromPayload(req.payload)
     const state = req.query.state as string
 
     const bookings = await bookingRepo.getBookings({ userId, state })

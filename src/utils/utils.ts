@@ -1,7 +1,7 @@
 import { type RequestPayload } from '../types'
 
-export const getIdFromPayload = (req: RequestPayload): string => {
-  if (typeof req.payload === 'object') return req.payload?.id
+export const getIdFromPayload = (payload: RequestPayload['payload']): string => {
+  if (typeof payload === 'object') return payload?.id
   else return ''
 }
 

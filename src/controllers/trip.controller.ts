@@ -1,10 +1,10 @@
 import type { NextFunction, Request, Response } from 'express'
 import httpStatus from 'http-status'
 import { getApiResponse, getIdFromPayload } from '../utils'
-import { tripRepo, userRepo } from '../repositories'
+import { notiRepo, tripRepo, userRepo } from '../repositories'
 import { messages, privacies } from '../constants'
 import type { RequestPayload } from '../types'
-import { v4 } from 'uuid'
+import { uid } from 'uid'
 
 export const createTrip = async (
   req: RequestPayload,
@@ -12,7 +12,7 @@ export const createTrip = async (
   next: NextFunction
 ) => {
   try {
-    const ownerId = getIdFromPayload(req)
+    const ownerId = getIdFromPayload(req.payload)
     const newTrip = await tripRepo.createTrip({ ...req.body, ownerId })
 
     return res.status(httpStatus.OK).json(getApiResponse({ data: newTrip }))
@@ -43,7 +43,7 @@ export const interactTrip = async (
 ) => {
   try {
     const tripId = req.params.id
-    const userId = getIdFromPayload(req)
+    const userId = getIdFromPayload(req.payload)
     const like: boolean = req.body.like
     const existed = await userRepo.checkExisted({ id: userId })
     if (existed === null) {
@@ -53,7 +53,9 @@ export const interactTrip = async (
     }
 
     if (like) {
-      await tripRepo.createInteract({ id: v4(), tripId, userId })
+      await tripRepo.createInteract({ id: uid(), tripId, userId })
+      // send notificaiton to user
+      void notiRepo.createTripInteractNoti(userId, tripId)
     } else {
       await tripRepo.removeInteract({ tripId, userId })
     }
@@ -70,7 +72,7 @@ export const addSavedItem = async (
 ) => {
   try {
     const { id } = req.params
-    const userId = getIdFromPayload(req)
+    const userId = getIdFromPayload(req.payload)
     const ownerId = await tripRepo.getOwnerId({ id })
 
     if (ownerId === null) {
@@ -97,7 +99,7 @@ export const removeSavedItem = async (
   try {
     const { id } = req.params
     // fix here
-    // const userId = getIdFromPayload(req)
+    // const userId = getIdFromPayload(req.payload)
     // const ownerId = await tripRepo.getOwnerId({ id })
 
     // if (ownerId === null) {
@@ -123,7 +125,7 @@ export const addItineraryItem = async (
 ) => {
   try {
     const { id } = req.params
-    const userId = getIdFromPayload(req)
+    const userId = getIdFromPayload(req.payload)
     const ownerId = await tripRepo.getOwnerId({ id })
 
     if (ownerId === null) {
@@ -180,7 +182,7 @@ export const getProfileTrips = async (
   next: NextFunction
 ) => {
   try {
-    const userId = getIdFromPayload(req)
+    const userId = getIdFromPayload(req.payload)
     const { ownerId } = req.params
 
     const trips = await tripRepo.getTrips({ ownerId, privacy: privacies.PUBLIC })
@@ -203,7 +205,7 @@ export const getDrawerTrips = async (
   next: NextFunction
 ) => {
   try {
-    const ownerId = getIdFromPayload(req)
+    const ownerId = getIdFromPayload(req.payload)
     // const { itemId } = req.query
 
     const trips = await tripRepo.getDrawerTrips({ ownerId })
@@ -228,7 +230,7 @@ export const getHomeTrips = async (
   next: NextFunction
 ) => {
   try {
-    const ownerId = getIdFromPayload(req)
+    const ownerId = getIdFromPayload(req.payload)
 
     const trips = await tripRepo.getHomeTrips({ ownerId })
 

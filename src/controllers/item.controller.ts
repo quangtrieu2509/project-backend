@@ -12,7 +12,7 @@ export const createItem = async (
   next: NextFunction
 ) => {
   try {
-    const ownerId = getIdFromPayload(req)
+    const ownerId = getIdFromPayload(req.payload)
     const newItem = await itemRepo.createItem({ id: uid(), ...req.body, ownerId })
     return res.status(httpStatus.OK).json(getApiResponse({ data: newItem }))
   } catch (error) {
@@ -66,7 +66,7 @@ export const getItems = async (
   next: NextFunction
 ) => {
   try {
-    const ownerId = getIdFromPayload(req)
+    const ownerId = getIdFromPayload(req.payload)
     let fields = req.query.fields as any
 
     if (fields === undefined || fields === '') fields = []

@@ -10,7 +10,7 @@ export const createReview = async (
   next: NextFunction
 ) => {
   try {
-    const userId = getIdFromPayload(req)
+    const userId = getIdFromPayload(req.payload)
     const newReview = await reviewRepo.createReview({ ...req.body, userId })
 
     return res.status(httpStatus.OK).json(getApiResponse({ data: newReview }))
