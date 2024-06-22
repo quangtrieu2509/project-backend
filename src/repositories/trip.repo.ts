@@ -51,6 +51,8 @@ export const getSavedItems = async (tripId: string): Promise<any[]> => {
               name: 1,
               categories: 1,
               ancestors: 1,
+              coordinates: 1,
+              address: 1,
               images: 1,
               description: 1,
               type: 1,
@@ -208,7 +210,6 @@ const stdLocationLookup = {
       {
         $project: {
           _id: 0,
-          coordinates: 0,
           description: 0,
           images: 0,
           'ancestors._id': 0

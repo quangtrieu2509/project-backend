@@ -1,8 +1,8 @@
 import jwt from 'jsonwebtoken'
 import { accessTokenSettings } from '../configs'
 import type { Server } from 'socket.io'
-import { userRepo } from '../repositories'
-import type { INoti, RequestPayload } from '../types'
+import { chatRepo, userRepo } from '../repositories'
+import type { IMessage, INoti, RequestPayload } from '../types'
 import { getIdFromPayload } from '../utils'
 
 // contain userId and array of socketId
@@ -53,4 +53,13 @@ export const socketRoutes = (io: Server): void => {
 
 export const sendNoti = (noti: INoti): void => {
   socketio.to('user_' + noti.userId).emit('noti', noti)
+}
+
+export const sendMessage = async (message: IMessage): Promise<void> => {
+  const members = await chatRepo.getMembers({ id: message.convoId })
+  if (members !== null) {
+    members.forEach(e => {
+      socketio.to('user_' + e).emit('message', message)
+    })
+  }
 }

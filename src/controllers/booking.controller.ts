@@ -78,7 +78,7 @@ export const getBusinessBookings = async (
   next: NextFunction
 ) => {
   try {
-    const itemId = req.params.id
+    const { itemId } = req.params
     const state = req.query.state as string
 
     const bookings = await bookingRepo.getBusinessBookings({ itemId, state })

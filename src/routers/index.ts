@@ -9,6 +9,7 @@ import reviewRouters from './review.route'
 import uploadRouters from './upload.route'
 import bookingRouters from './booking.route'
 import notiRouters from './noti.route'
+import chatRouters from './chat.route'
 
 const router = Router()
 
@@ -21,5 +22,6 @@ router.use('/review', reviewRouters)
 router.use('/upload', uploadRouters)
 router.use('/booking', bookingRouters)
 router.use('/noti', notiRouters)
+router.use('/chat', chatRouters)
 
 export default router

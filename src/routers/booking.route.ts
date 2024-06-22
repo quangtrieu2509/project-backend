@@ -11,7 +11,7 @@ router
   .get(verifyToken, controller.getBookings)
 
 router
-  .route('/business/:id')
+  .route('/business/:itemId')
   .get(verifyToken, controller.getBusinessBookings)
 
 router
