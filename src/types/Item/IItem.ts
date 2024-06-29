@@ -34,7 +34,10 @@ export interface IItem {
   features?: string[]
   amenities?: string[]
   ticketPrice?: number[]
-  duration?: number // time
+  duration?: {
+    value: number
+    unit: string
+  }
   ages?: number[]
   included?: string[]
   excluded?: string[]

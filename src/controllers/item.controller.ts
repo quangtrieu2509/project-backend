@@ -3,7 +3,7 @@ import httpStatus from 'http-status'
 import { getApiResponse, getIdFromPayload } from '../utils'
 import { uid } from 'uid'
 import { itemRepo } from '../repositories'
-import { messages } from '../constants'
+import { itemTypes, messages } from '../constants'
 import type { RequestPayload } from '../types'
 
 export const createItem = async (
@@ -39,6 +39,97 @@ export const getItem = async (
     }
 
     return res.status(httpStatus.OK).json(getApiResponse({ data: item }))
+  } catch (error) {
+    next(error)
+  }
+}
+
+export const getItemsOfLocation = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { id } = req.params
+    const results = await itemRepo.getItemsOfLocation(id)
+
+    return res.status(httpStatus.OK).json(getApiResponse({ data: results }))
+  } catch (error) {
+    next(error)
+  }
+}
+
+export const getQueriedItems = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { id } = req.params
+    const { type } = req.query
+
+    let results: any[]
+    switch (type) {
+      case itemTypes.DINING: {
+        const { types, meals, prices, rates, features } = req.body
+        results = await itemRepo.getDiningQuerying(id, types, meals, prices, rates, features)
+        break
+      }
+      case itemTypes.LODGING: {
+        const { types, amenities, priceLevels, rates, roomFeatures } = req.body
+        results = await itemRepo.getLodgingQuerying(id, types, amenities, priceLevels, rates, roomFeatures)
+        break
+      }
+      case itemTypes.ATTRACTION: {
+        const { types, rates } = req.body
+        results = await itemRepo.getAttractionQuerying(id, types, rates)
+        break
+      }
+      case itemTypes.ACTIVITY: {
+        const { types, rates } = req.body
+        results = await itemRepo.getActivityQuerying(id, types, rates)
+        break
+      }
+      default: results = []
+    }
+
+    return res.status(httpStatus.OK).json(getApiResponse({ data: results }))
+  } catch (error) {
+    next(error)
+  }
+}
+
+export const getBrowsingItems = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { locId } = req.params
+    const { type } = req.query
+
+    let results: any
+    switch (type) {
+      case itemTypes.DINING: {
+        results = await itemRepo.getDiningBrowsing(locId)
+        break
+      }
+      case itemTypes.LODGING: {
+        results = await itemRepo.getLodgingBrowsing(locId)
+        break
+      }
+      case itemTypes.ATTRACTION: {
+        results = await itemRepo.getAttractionBrowsing(locId)
+        break
+      }
+      case itemTypes.ACTIVITY: {
+        results = await itemRepo.getActivityBrowsing(locId)
+        break
+      }
+      default: results = {}
+    }
+
+    return res.status(httpStatus.OK).json(getApiResponse({ data: results }))
   } catch (error) {
     next(error)
   }

@@ -120,6 +120,8 @@ export const getItineraryItems = async (tripId: string): Promise<any[]> => {
               id: 1,
               name: 1,
               categories: 1,
+              coordinates: 1,
+              address: 1,
               ancestors: 1,
               images: 1,
               description: 1,

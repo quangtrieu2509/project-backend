@@ -12,13 +12,57 @@ export const getLocation = async (filters: any): Promise<ILocation | null> => {
   return loc === null ? loc : await loc.toObject()
 }
 
+export const updateLocation = async (filters: any, data: any): Promise<ILocation | null> => {
+  const loc = await Location.findOneAndUpdate(omitIsNil(filters), data)
+  return loc === null ? loc : await Location.findOne({ id: loc.id }, { _id: 0 })
+}
+
+export const getLocations = async (parentId?: string): Promise<any> => {
+  if (parentId !== undefined) {
+    const ancestors = await getBreadcrumb({ id: parentId })
+
+    if (ancestors === null) return { ancestors: [], locations: [] }
+
+    const { level, id } = ancestors[ancestors.length - 1]
+    const locs = await Location.find({ ancestors: { $elemMatch: { id } }, level: (+level) + 1 }, { _id: 0 })
+    return { ancestors, locations: locs }
+  } else {
+    const locs = await Location.find({ level: 1 }, { _id: 0 })
+    return { ancestors: [], locations: locs }
+  }
+}
+
+export const getOverviewLocations = async (parentId: string): Promise<any> => {
+  const parent = await Location.findOne({ id: parentId })
+
+  if (parent === null) return []
+
+  const { level, id } = parent
+  const results = await Location.find(
+    { ancestors: { $elemMatch: { id } }, level: (+level) + 1 },
+    { _id: 0, id: 1, name: 1, slug: 1, image: { $arrayElemAt: ['$images', 0] } }
+  )
+  return results
+}
+
+export const searchListLocations = async (query: string): Promise<any[]> => {
+  if (query === '') {
+    return []
+  }
+
+  const results = await Location.find({
+    name: { $regex: query, $options: 'i' }
+  }, { _id: 0 })
+  return results
+}
+
 export const getBreadcrumb = async (filters: any): Promise<any | null> => {
   const loc = await Location.findOne(omitIsNil(filters), { _id: 0 })
 
   if (loc === null) return loc
 
   const { ancestors, id, name, level, slug } = loc
-  ancestors.unshift({
+  ancestors.reverse().push({
     id, name, level, slug
   })
 

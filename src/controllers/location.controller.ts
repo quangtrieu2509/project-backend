@@ -37,6 +37,57 @@ export const getLocation = async (
   }
 }
 
+export const updateLocation = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const id = req.params.slug
+    const location = await locationRepo.updateLocation({ id }, req.body)
+
+    if (location === null) {
+      return res.status(httpStatus.NOT_FOUND).json(getApiResponse(messages.NOT_FOUND))
+    }
+
+    return res.status(httpStatus.OK).json(getApiResponse({ data: location }))
+  } catch (error) {
+    next(error)
+  }
+}
+
+export const getLocations = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { parentId, q } = req.query
+    if (q !== undefined) {
+      const results = await locationRepo.searchListLocations(q as any)
+      return res.status(httpStatus.OK).json(getApiResponse({ data: results }))
+    }
+    const results = await locationRepo.getLocations(parentId as any)
+    return res.status(httpStatus.OK).json(getApiResponse({ data: results }))
+  } catch (error) {
+    next(error)
+  }
+}
+
+export const getOverviewLocations = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { id } = req.params
+    const results = await locationRepo.getOverviewLocations(id)
+    return res.status(httpStatus.OK).json(getApiResponse({ data: results }))
+  } catch (error) {
+    next(error)
+  }
+}
+
 export const getBreadcrumb = async (
   req: Request,
   res: Response,

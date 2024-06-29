@@ -10,6 +10,18 @@ router
   .get(controller.searchItems)
 
 router
+  .route('/location/:id')
+  .get(controller.getItemsOfLocation)
+
+router
+  .route('/location/:id/query')
+  .post(controller.getQueriedItems)
+
+router
+  .route('/browsing/:locId')
+  .get(controller.getBrowsingItems)
+
+router
   .route('/:id/detail')
   .get(controller.getItemDetail)
 

@@ -1,6 +1,7 @@
 import { Schema, model } from 'mongoose'
 
 import { type IItem } from '../../types'
+import { timeUnits } from '../../constants'
 
 const itemSchema = new Schema(
   {
@@ -128,19 +129,29 @@ const itemSchema = new Schema(
       type: [Number]
     },
     duration: {
-      type: Number
+      type: {
+        value: {
+          type: Number,
+          required: true
+        },
+        unit: {
+          type: String,
+          required: true,
+          enum: timeUnits
+        }
+      }
     },
     ages: {
       type: [Number]
     },
     included: {
-      type: [String]
+      type: String
     },
     excluded: {
-      type: [String]
+      type: String
     },
     requirements: {
-      type: [String]
+      type: String
     }
   },
   {

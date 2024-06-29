@@ -1,7 +1,7 @@
 import { Router } from 'express'
 
 import { locationController as controller } from '../controllers'
-import { verifyToken } from '../middlewares'
+import { verifyAdmin, verifyToken } from '../middlewares'
 // import { Location } from '../models'
 
 const router = Router()
@@ -9,6 +9,14 @@ const router = Router()
 router
   .route('/search')
   .get(verifyToken, controller.searchLocations)
+
+router
+  .route('/list/:id')
+  .get(controller.getOverviewLocations)
+
+router
+  .route('/list')
+  .get(verifyAdmin, controller.getLocations)
 
 // router.route('/update/:id')
 //   .put(async (req, res, next) => {
@@ -33,9 +41,10 @@ router
 router
   .route('/:slug')
   .get(controller.getLocation)
+  .put(verifyAdmin, controller.updateLocation)
 
 router
   .route('/')
-  .post(controller.createLocation)
+  .post(verifyAdmin, controller.createLocation)
 
 export default router

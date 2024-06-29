@@ -177,6 +177,6 @@ export const activateEmail = async (
 }
 
 const getUserDTO = (user: IUser) => {
-  const { password, role, isActive, links, bio, ...userDTO } = user
+  const { password, isActive, links, bio, ...userDTO } = user
   return userDTO
 }

@@ -2,7 +2,7 @@ export interface IAttraction {
   id: string
   itemId: string
   categories: string[]
-  price?: number[]
+  ticketPrice?: number[]
   hours: Array<{
     open: string
     close: string
