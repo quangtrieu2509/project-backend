@@ -33,8 +33,8 @@ export const getProfile = async (
         .json(getApiResponse({ data: getUserDTO(user) }))
     } else {
       return res
-        .status(httpStatus.BAD_REQUEST)
-        .json(getApiResponse(messages.INFO_NOT_EXIST))
+        .status(httpStatus.NOT_FOUND)
+        .json(getApiResponse(messages.NOT_FOUND))
     }
   } catch (error) {
     next(error)

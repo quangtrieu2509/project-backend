@@ -28,7 +28,43 @@ export const getTrip = async (
 ) => {
   try {
     const { id } = req.params
+    const userId = getIdFromPayload(req.payload)
     const trip = await tripRepo.findTrip({ id })
+
+    if (trip === null) {
+      return res
+        .status(httpStatus.NOT_FOUND)
+        .json(getApiResponse(messages.NOT_FOUND))
+    }
+
+    if (trip.privacy === privacies.PRIVATE && userId !== trip.owner.id) {
+      return res
+        .status(httpStatus.FORBIDDEN)
+        .json(getApiResponse(messages.UNALLOWED_RESOURCE))
+    }
+
+    return res.status(httpStatus.OK).json(getApiResponse({ data: trip }))
+  } catch (error) {
+    next(error)
+  }
+}
+
+export const updateTrip = async (
+  req: RequestPayload,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const ownerId = getIdFromPayload(req.payload)
+    const { id } = req.params
+    console.log(req.body)
+    const trip = await tripRepo.updateTrip({ id, ownerId }, req.body)
+
+    if (trip === null) {
+      return res
+        .status(httpStatus.BAD_REQUEST)
+        .json(getApiResponse(messages.BAD_REQUEST))
+    }
 
     return res.status(httpStatus.OK).json(getApiResponse({ data: trip }))
   } catch (error) {
@@ -265,6 +301,22 @@ export const getItineraryItems = async (
     const items = await tripRepo.getItineraryItems(id)
 
     return res.status(httpStatus.OK).json(getApiResponse({ data: items }))
+  } catch (error) {
+    next(error)
+  }
+}
+
+export const removeItineraryItems = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { id } = req.params
+    const { removedList } = req.body
+    await tripRepo.removeItineraryItems({ tripId: id }, removedList)
+
+    return res.status(httpStatus.OK).json(getApiResponse(messages.OK))
   } catch (error) {
     next(error)
   }

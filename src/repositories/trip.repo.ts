@@ -160,6 +160,10 @@ export const getItineraryItems = async (tripId: string): Promise<any[]> => {
   return items
 }
 
+export const removeItineraryItems = async (filters: any, removedList: string[]): Promise<any> => {
+  return await ItineraryItem.deleteMany({ ...omitIsNil(filters), id: { $in: removedList } })
+}
+
 export const getOwnerId = async (filters: any): Promise<string | null> => {
   const trip = await Trip.findOne(omitIsNil(filters), { _id: 0, ownerId: 1 })
   return trip === null ? trip : trip.ownerId
@@ -389,6 +393,15 @@ export const findTrip = async (filters: any): Promise<any | null> => {
     }
   ])
   return trip.length === 0 ? null : trip[0]
+}
+
+export const updateTrip = async (filters: any, data: any): Promise<any | null> => {
+  const result = await Trip.findOneAndUpdate(omitIsNil(filters), data)
+  if (result === null) return null
+  if (data.tripLength !== undefined) {
+    await ItineraryItem.deleteMany({ tripId: filters.id, day: { $gt: data.tripLength } })
+  }
+  return await findTrip(omitIsNil(filters))
 }
 
 export const createInteract = async (interact: ITripInteract): Promise<ITripInteract> => {

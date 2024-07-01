@@ -8,7 +8,7 @@ import morgan from 'morgan'
 import { Server } from 'socket.io'
 
 import { emitter } from './event-emitter'
-import { vars } from './vars'
+import { client, vars } from './vars'
 import { events } from '../constants'
 import database from '../database'
 import router from '../routers'
@@ -26,7 +26,7 @@ const haltOnTimedout = (req: Request, _res: Response, next: any): void => {
 
 const io = new Server(httpServer, {
   cors: {
-    origin: ['http://localhost:3001'],
+    origin: [client.localUrl, client.renderUrl],
     methods: ['GET', 'POST'],
     credentials: true
   }

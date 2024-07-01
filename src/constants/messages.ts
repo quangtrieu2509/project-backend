@@ -43,6 +43,10 @@ export const messages = {
     ec: 420,
     msg: 'Access token is invalid'
   },
+  UNALLOWED_RESOURCE: {
+    ec: 421,
+    msg: 'Cannot access this resource'
+  },
   INTERNAL_SERVER_ERROR: {
     ec: 500,
     msg: 'Internal server error'

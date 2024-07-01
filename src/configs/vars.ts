@@ -36,3 +36,8 @@ export const mailerTransporter = nodemailer.createTransport({
     pass: process.env.MAIL_PASSWORD
   }
 })
+
+export const client = {
+  localUrl: process.env.LOCAL_URL ?? 'http://localhost:3001',
+  renderUrl: process.env.RENDER_URL ?? ''
+}

@@ -36,10 +36,12 @@ router
   .route('/:id/itinerary')
   .get(verifyToken, controller.getItineraryItems)
   .post(verifyToken, controller.addItineraryItem)
+  .put(verifyToken, controller.removeItineraryItems)
 
 router
   .route('/:id')
   .get(verifyToken, controller.getTrip)
+  .put(verifyToken, controller.updateTrip)
   .post(verifyToken, controller.interactTrip)
 
 router
