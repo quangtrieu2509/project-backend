@@ -1,6 +1,5 @@
 import type { Request, Response, NextFunction } from 'express'
 import httpStatus from 'http-status'
-import { v4 } from 'uuid'
 
 import { notiRepo, userRepo } from '../repositories'
 import { getApiResponse, getIdFromPayload } from '../utils'
@@ -8,6 +7,7 @@ import { messages } from '../constants'
 import type { RequestPayload } from '../types'
 import { getTripDTO } from './trip.controller'
 import { getReviewDTO } from './review.controller'
+import { uid } from 'uid'
 
 export const createUser = async (
   req: Request,
@@ -60,7 +60,7 @@ export const interactUser = async (
     }
 
     if (follow) {
-      await userRepo.createFollow({ id: v4(), followerId, followingId })
+      await userRepo.createFollow({ id: uid(), followerId, followingId })
       void notiRepo.createUserInteractNoti(followerId, followingId)
     } else {
       await userRepo.removeFollow({ followerId, followingId })
