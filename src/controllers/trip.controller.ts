@@ -322,7 +322,7 @@ export const removeItineraryItems = async (
   }
 }
 
-const getTripDTO = (userId: string, trip: any): any => {
+export const getTripDTO = (userId: string, trip: any): any => {
   const { likes, ...rest } = trip
   return {
     ...rest,

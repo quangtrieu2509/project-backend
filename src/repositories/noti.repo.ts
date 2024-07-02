@@ -1,6 +1,6 @@
 import { uid } from 'uid'
-import { Noti, Trip, User } from '../models'
-import type { INoti, ITrip, IUser } from '../types'
+import { Noti, Review, Trip, User } from '../models'
+import type { INoti, IReview, ITrip, IUser } from '../types'
 import { omitIsNil } from '../utils'
 import { notiTypes } from '../constants'
 import { sendNoti } from '../routers/socket.route'
@@ -21,6 +21,22 @@ export const createTripInteractNoti = async (userId: string, tripId: string): Pr
       type: notiTypes.LIKE,
       content: `<b>${user.givenName} ${user.familyName}</b> liked your trip: "${trip.title}".`,
       url: `/trip/${(trip as ITrip).id}`
+    }
+    handleSaveNoti(noti)
+  }
+}
+
+export const createReviewInteractNoti = async (userId: string, reviewId: string): Promise<void> => {
+  const userPromise = User.findOne({ id: userId }, { _id: 0, id: 1, givenName: 1, familyName: 1 })
+  const rvPromise = Review.findOne({ id: reviewId }, { _id: 0, id: 1, content: 1, userId: 1 })
+  const [user, review] = await Promise.all([userPromise, rvPromise])
+  // existed user && existed trip && do not like your own trip
+  if (user !== null && review !== null && userId !== review.userId) {
+    const noti = {
+      userId: review.userId,
+      type: notiTypes.LIKE,
+      content: `<b>${user.givenName} ${user.familyName}</b> liked your review: "${review.content}".`,
+      url: `/profile/${(review as IReview).userId}?tab=reviews`
     }
     handleSaveNoti(noti)
   }

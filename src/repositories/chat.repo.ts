@@ -23,6 +23,46 @@ export const getMembers = async (filters: any): Promise<string[] | null> => {
   return convo === null ? convo : convo.members
 }
 
+export const getConvoByMembers = async (userId: string, recId: string): Promise<any | null> => {
+  const convo = await Convo.aggregate([
+    {
+      $match: {
+        members: { $all: [userId, recId] }
+      }
+    },
+    ...stdLookupReceiver(userId),
+    {
+      $project: {
+        _id: 0,
+        'members._id': 0
+      }
+    }
+  ])
+
+  return convo.length !== 0 ? convo[0] : null
+}
+
+// export const sendNewMessage = async (senId: string, recId: string, content: string): Promise<any> => {
+//   const newConvo: IConvo = {
+//     id: uid(),
+//     members: [senId, recId],
+//     latestMessage: {
+//       userId: senId,
+//       content: ''
+//     },
+//     isSeen: false
+//   }
+//   const convo = await createConvo(newConvo)
+//   const newMessage: IMessage = {
+//     id: uid(),
+//     convoId: convo.id,
+//     userId: senId,
+//     content
+//   }
+//   const message = await createMessage(newMessage)
+//   return message
+// }
+
 export const createMessage = async (message: IMessage): Promise<IMessage> => {
   const newMessage = await Message.create(message)
   void updateConvo({ id: message.convoId }, { latestMessage: message, isSeen: false })
@@ -50,35 +90,7 @@ export const getUserConvos = async (userId: string, unreadFilter: boolean = fals
         updatedAt: -1
       }
     },
-    {
-      $lookup: {
-        from: 'users',
-        localField: 'members',
-        foreignField: 'id',
-        pipeline: [
-          {
-            $match: {
-              id: { $ne: userId }
-            }
-          },
-          {
-            $project: {
-              _id: 0,
-              id: 1,
-              profileImage: 1,
-              givenName: 1,
-              familyName: 1
-            }
-          }
-        ],
-        as: 'receiver'
-      }
-    },
-    {
-      $addFields: {
-        receiver: { $arrayElemAt: ['$receiver', 0] }
-      }
-    },
+    ...stdLookupReceiver(userId),
     {
       $project: {
         _id: 0,
@@ -89,3 +101,35 @@ export const getUserConvos = async (userId: string, unreadFilter: boolean = fals
 
   return convos
 }
+
+const stdLookupReceiver = (userId: string): any[] => [
+  {
+    $lookup: {
+      from: 'users',
+      localField: 'members',
+      foreignField: 'id',
+      pipeline: [
+        {
+          $match: {
+            id: { $ne: userId } // userId is not receiver
+          }
+        },
+        {
+          $project: {
+            _id: 0,
+            id: 1,
+            profileImage: 1,
+            givenName: 1,
+            familyName: 1
+          }
+        }
+      ],
+      as: 'receiver'
+    }
+  },
+  {
+    $addFields: {
+      receiver: { $arrayElemAt: ['$receiver', 0] }
+    }
+  }
+]

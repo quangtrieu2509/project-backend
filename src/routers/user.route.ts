@@ -7,6 +7,10 @@ import { verifyToken } from '../middlewares'
 const router = Router()
 
 router
+  .route('/:id/activities')
+  .get(verifyToken, controller.getActivities)
+
+router
   .route('/:id/:type(followers|followings)')
   .get(verifyToken, controller.getInteractInfo)
 

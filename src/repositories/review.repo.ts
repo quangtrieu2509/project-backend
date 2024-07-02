@@ -1,7 +1,7 @@
 import { uid } from 'uid'
 
-import { Review } from '../models'
-import type { IReview } from '../types'
+import { Review, ReviewInteract } from '../models'
+import type { IReview, IReviewInteract } from '../types'
 import { omitIsNil } from '../utils'
 import { rateFilters } from '../constants/review'
 
@@ -76,6 +76,27 @@ export const getReviews = async (filters: any, rateSelection: string): Promise<a
       }
     },
     {
+      $lookup: {
+        from: 'review_interacts',
+        localField: 'id',
+        foreignField: 'reviewId',
+        pipeline: [
+          {
+            $project: {
+              _id: 0,
+              userId: 1
+            }
+          }
+        ],
+        as: 'likes'
+      }
+    },
+    {
+      $addFields: {
+        likes: '$likes.userId'
+      }
+    },
+    {
       $project: {
         _id: 0,
         isActive: 0,
@@ -90,6 +111,136 @@ export const getReviews = async (filters: any, rateSelection: string): Promise<a
   ])
 
   return items
+}
+
+export const getProfileReviews = async (filters: any): Promise<any[]> => {
+  const reviews = await Review.aggregate([
+    {
+      $match: {
+        ...omitIsNil(filters)
+      }
+    },
+    {
+      $lookup: {
+        from: 'users',
+        localField: 'userId',
+        foreignField: 'id',
+        pipeline: [
+          {
+            $project:
+            {
+              _id: 0,
+              id: 1,
+              familyName: 1,
+              givenName: 1,
+              address: 1,
+              profileImage: 1
+            }
+          }
+        ],
+        as: 'user'
+      }
+    },
+    {
+      $addFields: {
+        user: {
+          $arrayElemAt: ['$user', 0]
+        }
+      }
+    },
+    {
+      $lookup: {
+        from: 'items',
+        localField: 'itemId',
+        foreignField: 'id',
+        pipeline: [
+          {
+            $project: {
+              _id: 0,
+              id: 1,
+              name: 1,
+              ancestors: 1,
+              images: 1,
+              type: 1
+            }
+          }
+        ],
+        as: 'item'
+      }
+    },
+    {
+      $addFields: {
+        item: { $arrayElemAt: ['$item', 0] }
+      }
+    },
+    {
+      $lookup: {
+        from: 'reviews',
+        localField: 'item.id',
+        foreignField: 'itemId',
+        pipeline: [
+          {
+            $project: {
+              _id: 0,
+              rate: 1
+            }
+          }
+        ],
+        as: 'reviewCounts'
+      }
+    },
+    {
+      $lookup: {
+        from: 'review_interacts',
+        localField: 'id',
+        foreignField: 'reviewId',
+        pipeline: [
+          {
+            $project: {
+              _id: 0,
+              userId: 1
+            }
+          }
+        ],
+        as: 'likes'
+      }
+    },
+    {
+      $addFields: {
+        'item.review': {
+          rate: { $avg: '$reviewCounts.rate' },
+          total: { $size: '$reviewCounts' }
+        },
+        'item.image': { $arrayElemAt: ['$item.images', 0] },
+        likes: '$likes.userId'
+      }
+    },
+    {
+      $project: {
+        _id: 0,
+        itemId: 0,
+        userId: 0,
+        reviewCounts: 0,
+        'item.images': 0
+      }
+    },
+    {
+      $sort: {
+        createdAt: -1
+      }
+    }
+  ])
+
+  return reviews
+}
+
+export const createInteract = async (interact: IReviewInteract): Promise<IReviewInteract> => {
+  const newInteract = await ReviewInteract.create(interact)
+  return await newInteract.toObject()
+}
+
+export const removeInteract = async (filters: any): Promise<IReviewInteract | null> => {
+  return await ReviewInteract.findOneAndDelete(omitIsNil(filters))
 }
 
 export const getOverviewRates = async (filters: any): Promise<any> => {

@@ -1,8 +1,10 @@
 import type { NextFunction, Request, Response } from 'express'
 import httpStatus from 'http-status'
 import { getApiResponse, getIdFromPayload } from '../utils'
-import { reviewRepo } from '../repositories'
+import { notiRepo, reviewRepo } from '../repositories'
 import type { RequestPayload } from '../types'
+import { uid } from 'uid'
+import { messages } from '../constants'
 
 export const createReview = async (
   req: RequestPayload,
@@ -47,5 +49,61 @@ export const getReviews = async (
     return res.status(httpStatus.OK).json(getApiResponse({ data: results }))
   } catch (error) {
     next(error)
+  }
+}
+
+export const getProfileReviews = async (
+  req: RequestPayload,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const id = getIdFromPayload(req.payload)
+    const { userId } = req.params
+    const results = await reviewRepo.getProfileReviews({ userId })
+
+    const reviewDTOs: any[] = []
+
+    for (const review of results) {
+      reviewDTOs.push(getReviewDTO(id, review))
+    }
+
+    return res.status(httpStatus.OK).json(getApiResponse({ data: reviewDTOs }))
+  } catch (error) {
+    next(error)
+  }
+}
+
+export const interactReview = async (
+  req: RequestPayload,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const reviewId = req.params.id
+    const userId = getIdFromPayload(req.payload)
+    const like: boolean = req.body.like
+
+    if (like) {
+      await reviewRepo.createInteract({ id: uid(), reviewId, userId })
+      // send notificaiton to user
+      void notiRepo.createReviewInteractNoti(userId, reviewId)
+    } else {
+      await reviewRepo.removeInteract({ reviewId, userId })
+    }
+    return res.status(httpStatus.OK).json(getApiResponse(messages.OK))
+  } catch (error) {
+    next(error)
+  }
+}
+
+export const getReviewDTO = (userId: string, review: any): any => {
+  const { likes, ...rest } = review
+  return {
+    ...rest,
+    interact: {
+      likes: likes.length,
+      liked: likes.includes(userId)
+    }
   }
 }

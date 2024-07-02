@@ -10,8 +10,16 @@ router
   .get(controller.getOverviewRates)
 
 router
-  .route('/:itemId')
+  .route('/profile-reviews/:userId')
+  .get(verifyToken, controller.getProfileReviews)
+
+router
+  .route('/item/:itemId')
   .get(controller.getReviews)
+
+router
+  .route('/:id')
+  .post(verifyToken, controller.interactReview)
 
 router
   .route('/')

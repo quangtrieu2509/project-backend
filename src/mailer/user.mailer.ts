@@ -1,7 +1,7 @@
 import mjml2html from 'mjml'
 import path from 'path'
 
-import { mailer } from '../configs'
+import { client, mailer } from '../configs'
 
 export const sendActiveMail = (email: string, familyName: string, token: string): void => {
   const mjmlTemplate = `
@@ -16,8 +16,8 @@ export const sendActiveMail = (email: string, familyName: string, token: string)
       <mj-body background-color="#f5f5f5">
         <mj-section>
           <mj-column>
-            <mj-image src="cid:trippie-full-logo" alt="Logo" width="100px" padding-bottom="16px"></mj-image>
-            <mj-text align="center" font-size="24px" color="#16a34a" font-weight="bold" padding-bottom="16px">
+            <mj-image src="cid:trippie-full-logo" alt="Logo" width="150px" padding-bottom="12px"></mj-image>
+            <mj-text align="center" font-size="24px" color="#16a34a" font-weight="bold" padding-bottom="12px">
               Activate Your Account
             </mj-text>
             <mj-divider border-color="#262626" padding-bottom="16px" border-width="2px"></mj-divider>
@@ -27,7 +27,7 @@ export const sendActiveMail = (email: string, familyName: string, token: string)
             <mj-text font-size="16px" color="#262626" line-height="1.5">
               Thank you for signing up for our service! Please click the following link to activate your account:
             </mj-text>
-            <mj-button href="https://project-backend-85y2.onrender.com/auth/activate-email/${token}" background-color="#262626" color="#ffffff" font-size="16px" padding-top="16px" padding-bottom="16px">
+            <mj-button href="${client.renderUrl}/auth/activate-email/${token}" background-color="#262626" color="#ffffff" font-size="16px" padding-top="16px" padding-bottom="16px">
               Activate Account
             </mj-button>
             <mj-text font-size="14px" color="#737373" padding-top="16px">
@@ -45,8 +45,8 @@ export const sendActiveMail = (email: string, familyName: string, token: string)
     html,
     attachments: [
       {
-        filename: 'trippie-full-logo.svg',
-        path: path.join(__dirname, '.', 'images', 'trippie-full-logo.svg'),
+        filename: 'trippie-full-logo.png',
+        path: path.join(__dirname, 'images', 'trippie-full-logo.png'),
         cid: 'trippie-full-logo'
       }
     ]

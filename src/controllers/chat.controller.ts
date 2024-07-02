@@ -24,6 +24,44 @@ export const getUserConvos = async (
   }
 }
 
+export const checkConvo = async (
+  req: RequestPayload,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const id = getIdFromPayload(req.payload)
+    const { userId } = req.params
+
+    const convo = await chatRepo.getConvoByMembers(id, userId)
+
+    if (convo === null) {
+      return res.status(httpStatus.NOT_FOUND).json(getApiResponse(messages.NOT_FOUND))
+    }
+
+    return res.status(httpStatus.OK).json(getApiResponse({ data: convo }))
+  } catch (error) {
+    next(error)
+  }
+}
+
+// export const sendNewMessage = async (
+//   req: RequestPayload,
+//   res: Response,
+//   next: NextFunction
+// ) => {
+//   try {
+//     const id = getIdFromPayload(req.payload)
+//     const { userId } = req.params
+
+//     const convo = await chatRepo.sendNewMessage(id, userId, req.body.content)
+
+//     return res.status(httpStatus.OK).json(getApiResponse({ data: convo }))
+//   } catch (error) {
+//     next(error)
+//   }
+// }
+
 export const getMessages = async (
   req: RequestPayload,
   res: Response,

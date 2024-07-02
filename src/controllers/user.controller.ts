@@ -6,6 +6,8 @@ import { notiRepo, userRepo } from '../repositories'
 import { getApiResponse, getIdFromPayload } from '../utils'
 import { messages } from '../constants'
 import type { RequestPayload } from '../types'
+import { getTripDTO } from './trip.controller'
+import { getReviewDTO } from './review.controller'
 
 export const createUser = async (
   req: Request,
@@ -81,6 +83,50 @@ export const getInteractInfo = async (
     const userList = await userRepo.getInteractInfo(id, userId, type)
 
     return res.status(httpStatus.OK).json(getApiResponse({ data: userList }))
+  } catch (error) {
+    next(error)
+  }
+}
+
+export const getActivities = async (
+  req: RequestPayload,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const userId = getIdFromPayload(req.payload)
+    const { id } = req.params
+
+    if (id === undefined) {
+      return res
+        .status(httpStatus.OK)
+        .json(getApiResponse({ data: [] }))
+    }
+
+    const results = await userRepo.getActivities(id)
+
+    const [trips, reviews] = results
+
+    const tripDTOs: any[] = []
+    const reviewDTOs: any[] = []
+
+    for (const trip of trips) {
+      trip.type = 'trip'
+      tripDTOs.push(getTripDTO(userId, trip))
+    }
+
+    for (const review of reviews) {
+      review.type = 'review'
+      reviewDTOs.push(getReviewDTO(userId, review))
+    }
+
+    return res
+      .status(httpStatus.OK)
+      .json(getApiResponse({
+        data: [tripDTOs, reviewDTOs]
+          .flat()
+          .sort((a, b) => +(a.createdAt > b.createdAt))
+      }))
   } catch (error) {
     next(error)
   }

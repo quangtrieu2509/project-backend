@@ -7,6 +7,14 @@ import { Message } from '../models'
 const router = Router()
 
 router
+  .route('/check/:userId')
+  .get(verifyToken, controller.checkConvo)
+
+// router
+//   .route('/new-message/:userId')
+//   .get(verifyToken, controller.sendNewMessage)
+
+router
   .route('/:convoId')
   .get(verifyToken, controller.getMessages)
 

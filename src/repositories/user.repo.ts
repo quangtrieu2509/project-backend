@@ -1,3 +1,4 @@
+import { reviewRepo, tripRepo } from '.'
 import { privacies } from '../constants'
 import { Follow, User } from '../models'
 import type { IFollow, IUser } from '../types'
@@ -44,13 +45,33 @@ export const getProfile = async (filters: any): Promise<any | null> => {
             }
           }
         ],
-        as: 'contributions'
+        as: 'trips'
+      }
+    },
+    {
+      $lookup: {
+        from: 'reviews',
+        localField: 'id',
+        foreignField: 'userId',
+        pipeline: [
+          // {
+          //   $match:
+          //   {
+          //     $expr:
+          //     { $eq: ['$privacy', privacies.PUBLIC] }
+          //   }
+          // }
+        ],
+        as: 'reviews'
       }
     },
     {
       $addFields: {
         contributions: {
-          $size: '$contributions'
+          $add: [
+            { $size: '$trips' },
+            { $size: '$reviews' }
+          ]
         }
       }
     },
@@ -213,4 +234,11 @@ export const getInteractInfo = async (ownerId: string, userId: string, type: str
     }
   ])
   return userList
+}
+
+export const getActivities = async (ownerId: string): Promise<any[]> => {
+  const tripPromise = tripRepo.getTrips({ ownerId, privacy: privacies.PUBLIC })
+  const reviewPromise = reviewRepo.getProfileReviews({ userId: ownerId })
+  const results = await Promise.all([tripPromise, reviewPromise])
+  return results
 }
