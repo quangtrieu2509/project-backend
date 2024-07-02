@@ -3,6 +3,8 @@ import path from 'path'
 
 import { client, mailer } from '../configs'
 
+const logoUrl = 'https://firebasestorage.googleapis.com/v0/b/trippie-61780.appspot.com/o/system%2Ftrippie-full-logo.png?alt=media&token=bd98276e-8bf0-461f-9264-9d40766e56bd'
+
 export const sendActiveMail = (email: string, familyName: string, token: string): void => {
   const mjmlTemplate = `
     <mjml>
@@ -16,7 +18,7 @@ export const sendActiveMail = (email: string, familyName: string, token: string)
       <mj-body background-color="#f5f5f5">
         <mj-section>
           <mj-column>
-            <mj-image src="cid:trippie-full-logo" alt="Logo" width="150px" padding-bottom="12px"></mj-image>
+            <mj-image src="${logoUrl}" alt="Logo" width="150px" padding-bottom="12px"></mj-image>
             <mj-text align="center" font-size="24px" color="#16a34a" font-weight="bold" padding-bottom="12px">
               Activate Your Account
             </mj-text>
