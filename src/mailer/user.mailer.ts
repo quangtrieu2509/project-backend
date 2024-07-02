@@ -1,5 +1,4 @@
 import mjml2html from 'mjml'
-import path from 'path'
 
 import { client, mailer } from '../configs'
 
@@ -44,14 +43,7 @@ export const sendActiveMail = (email: string, familyName: string, token: string)
   const mailOptions = {
     to: email,
     subject: 'Activate Account',
-    html,
-    attachments: [
-      {
-        filename: 'trippie-full-logo.png',
-        path: path.join(__dirname, 'images', 'trippie-full-logo.png'),
-        cid: 'trippie-full-logo'
-      }
-    ]
+    html
   }
 
   mailer.sendMail(mailOptions)
