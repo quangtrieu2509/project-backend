@@ -19,6 +19,7 @@ router
 
 router
   .route('/:id')
+  .get(verifyToken, controller.getReview)
   .post(verifyToken, controller.interactReview)
 
 router

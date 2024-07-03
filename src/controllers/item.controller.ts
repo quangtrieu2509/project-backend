@@ -3,7 +3,7 @@ import httpStatus from 'http-status'
 import { getApiResponse, getIdFromPayload } from '../utils'
 import { uid } from 'uid'
 import { itemRepo } from '../repositories'
-import { itemTypes, messages } from '../constants'
+import { itemStates, itemTypes, messages } from '../constants'
 import type { RequestPayload } from '../types'
 
 export const createItem = async (
@@ -136,14 +136,16 @@ export const getBrowsingItems = async (
 }
 
 export const updateItem = async (
-  req: Request,
+  req: RequestPayload,
   res: Response,
   next: NextFunction
 ) => {
   try {
     const { id } = req.params
+    const ownerId = getIdFromPayload(req.payload)
+    const { state, ...body } = req.body
 
-    await itemRepo.updateItem(id, req.body)
+    await itemRepo.updateItem({ id, ownerId }, body)
 
     return res.status(httpStatus.OK).json(getApiResponse(messages.OK))
   } catch (error) {
@@ -151,7 +153,24 @@ export const updateItem = async (
   }
 }
 
-export const getItems = async (
+export const changeStateItem = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { id } = req.params
+    const { state } = req.body
+
+    await itemRepo.updateItem({ id }, { state, adminUpdatedAt: new Date() })
+
+    return res.status(httpStatus.OK).json(getApiResponse(messages.OK))
+  } catch (error) {
+    next(error)
+  }
+}
+
+export const getOwnedItems = async (
   req: RequestPayload,
   res: Response,
   next: NextFunction
@@ -171,6 +190,45 @@ export const getItems = async (
   }
 }
 
+export const getBusinessItem = async (
+  req: RequestPayload,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const ownerId = getIdFromPayload(req.payload)
+    const { id } = req.params
+
+    const item = await itemRepo.getItem({ id, ownerId })
+
+    if (item === null) {
+      return res.status(httpStatus.NOT_FOUND).json(getApiResponse(messages.NOT_FOUND))
+    }
+
+    return res.status(httpStatus.OK).json(getApiResponse({ data: item }))
+  } catch (error) {
+    next(error)
+  }
+}
+
+export const getAdminItems = async (
+  req: RequestPayload,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { state } = req.query
+
+    const items = await itemRepo.getAdminItems(state as string)
+
+    return res
+      .status(httpStatus.OK)
+      .json(getApiResponse({ data: items }))
+  } catch (error) {
+    next(error)
+  }
+}
+
 export const getItemDetail = async (
   req: Request,
   res: Response,
@@ -179,7 +237,7 @@ export const getItemDetail = async (
   try {
     const { id } = req.params
 
-    const item = await itemRepo.getItemDetail({ id })
+    const item = await itemRepo.getItemDetail({ id, state: itemStates.ACTIVE })
 
     if (item === null) {
       return res.status(httpStatus.NOT_FOUND).json(getApiResponse(messages.NOT_FOUND))

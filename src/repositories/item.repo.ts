@@ -1,4 +1,4 @@
-import { itemTypes } from '../constants'
+import { itemStates, itemTypes } from '../constants'
 import { Item, Location } from '../models'
 import { omitIsNil, transformToPrjObj } from '../utils'
 
@@ -16,7 +16,7 @@ export const getItem = async (filters: any, project: string[] = []): Promise<any
 export const getItemsOfLocation = async (locId: string): Promise<any> => {
   const results = await Item.aggregate([
     {
-      $match: { 'ancestors.id': locId }
+      $match: { 'ancestors.id': locId, state: itemStates.ACTIVE }
     },
     ...lookupReview,
     {
@@ -61,14 +61,57 @@ export const getItemsOfLocation = async (locId: string): Promise<any> => {
   return resultDtos
 }
 
-export const updateItem = async (id: string, data: any): Promise<any | null> => {
-  const item = await Item.findOneAndUpdate({ id }, data)
+export const updateItem = async (filters: any, data: any): Promise<any | null> => {
+  const item = await Item.findOneAndUpdate(omitIsNil(filters), data)
   return item === null ? item : item.toObject()
 }
 
 export const getItems = async (filters: any, project: string[] = []): Promise<any[]> => {
   const projectObj = transformToPrjObj(project)
   const items = await Item.find(omitIsNil(filters), { _id: 0, ...projectObj })
+  return items
+}
+
+export const getAdminItems = async (state: string): Promise<any[]> => {
+  const items = await Item.aggregate([
+    {
+      $match: { state }
+    },
+    {
+      $lookup: {
+        from: 'users',
+        localField: 'ownerId',
+        foreignField: 'id',
+        pipeline: [
+          {
+            $project:
+            {
+              _id: 0,
+              id: 1,
+              familyName: 1,
+              givenName: 1,
+              profileImage: 1
+            }
+          }
+        ],
+        as: 'owner'
+      }
+    },
+    {
+      $addFields: {
+        owner: { $arrayElemAt: ['$owner', 0] }
+      }
+    },
+    {
+      $project: {
+        _id: 0,
+        ownerId: 0
+      }
+    },
+    {
+      $sort: state === itemStates.PENDING ? { createdAt: 1 } : { adminUpdatedAt: -1 }
+    }
+  ])
   return items
 }
 
@@ -97,11 +140,6 @@ export const searchItems = async (query: string, filter: any = 'all', limit: num
   }
 
   let itemPromise, locationPromise
-  const stdMatch = {
-    $match: {
-      name: { $regex: query, $options: 'i' }
-    }
-  }
   const stdLimit = {
     $limit: limit
   }
@@ -114,7 +152,11 @@ export const searchItems = async (query: string, filter: any = 'all', limit: num
   }
 
   const generateLocAggregate = (): any[] => [
-    stdMatch, stdLimit,
+    {
+      $match: {
+        name: { $regex: query, $options: 'i' }
+      }
+    }, stdLimit,
     {
       $project: {
         ...stdProject,
@@ -126,7 +168,9 @@ export const searchItems = async (query: string, filter: any = 'all', limit: num
   const generateItemAggregate = (type: string): any[] => [
     {
       $match: {
-        type, name: { $regex: query, $options: 'i' }
+        type,
+        state: itemStates.ACTIVE,
+        name: { $regex: query, $options: 'i' }
       }
     },
     stdLimit,
@@ -144,7 +188,12 @@ export const searchItems = async (query: string, filter: any = 'all', limit: num
   if (filter === 'all') {
     locationPromise = Location.aggregate(generateLocAggregate())
     itemPromise = Item.aggregate([
-      stdMatch, stdLimit,
+      {
+        $match: {
+          name: { $regex: query, $options: 'i' },
+          state: itemStates.ACTIVE
+        }
+      }, stdLimit,
       ...lookupReview,
       {
         $project: {
@@ -217,7 +266,7 @@ const addReviewDetails = (reviews: Array<{ rate: number }>): any => {
 const getItemsByPopularity = async (locId: string, type: string): Promise<any[]> => {
   const results = await Item.aggregate([
     {
-      $match: { 'ancestors.id': locId, type }
+      $match: { 'ancestors.id': locId, type, state: itemStates.ACTIVE }
     },
     ...lookupReview,
     {

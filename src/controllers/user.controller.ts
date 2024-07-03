@@ -125,7 +125,7 @@ export const getActivities = async (
       .json(getApiResponse({
         data: [tripDTOs, reviewDTOs]
           .flat()
-          .sort((a, b) => +(a.createdAt > b.createdAt))
+          .sort((a, b) => b.createdAt - a.createdAt)
       }))
   } catch (error) {
     next(error)

@@ -22,6 +22,8 @@ export interface IItem {
   }
   type: string
   isReservable: boolean
+  state: string
+  adminUpdatedAt?: Date
   categories: string[]
   price?: {
     level: string
@@ -42,5 +44,4 @@ export interface IItem {
   included?: string[]
   excluded?: string[]
   requirements?: string[]
-  // itinerary?: object[]
 }

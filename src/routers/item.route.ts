@@ -1,13 +1,25 @@
 import { Router } from 'express'
 
 import { itemController as controller } from '../controllers'
-import { verifyToken } from '../middlewares'
+import { verifyAdmin, verifyToken } from '../middlewares'
 
 const router = Router()
 
 router
   .route('/search')
   .get(controller.searchItems)
+
+router
+  .route('/admin')
+  .get(verifyAdmin, controller.getAdminItems)
+
+router
+  .route('/admin/:id')
+  .put(verifyAdmin, controller.changeStateItem)
+
+router
+  .route('/business/:id')
+  .get(verifyToken, controller.getBusinessItem)
 
 router
   .route('/location/:id')
@@ -28,11 +40,11 @@ router
 router
   .route('/:id')
   .get(controller.getItem)
-  .put(controller.updateItem)
+  .put(verifyToken, controller.updateItem)
 
 router
   .route('/')
   .post(verifyToken, controller.createItem)
-  .get(verifyToken, controller.getItems)
+  .get(verifyToken, controller.getOwnedItems)
 
 export default router

@@ -74,6 +74,28 @@ export const getProfileReviews = async (
   }
 }
 
+export const getReview = async (
+  req: RequestPayload,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const userId = getIdFromPayload(req.payload)
+    const { id } = req.params
+    const results = await reviewRepo.getProfileReviews({ id })
+
+    if (results.length === 0) {
+      return res.status(httpStatus.NOT_FOUND).json(getApiResponse(messages.NOT_FOUND))
+    }
+
+    const review = getReviewDTO(userId, results[0])
+
+    return res.status(httpStatus.OK).json(getApiResponse({ data: review }))
+  } catch (error) {
+    next(error)
+  }
+}
+
 export const interactReview = async (
   req: RequestPayload,
   res: Response,

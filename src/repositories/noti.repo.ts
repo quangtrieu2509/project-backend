@@ -36,7 +36,7 @@ export const createReviewInteractNoti = async (userId: string, reviewId: string)
       userId: review.userId,
       type: notiTypes.LIKE,
       content: `<b>${user.givenName} ${user.familyName}</b> liked your review: "${review.content}".`,
-      url: `/profile/${(review as IReview).userId}?tab=reviews`
+      url: `/review/${(review as IReview).id}`
     }
     handleSaveNoti(noti)
   }
