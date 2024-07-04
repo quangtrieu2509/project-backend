@@ -10,5 +10,5 @@ export interface IReview {
     name: string
     url: string
   }>
-  isActive: boolean
+  state: string
 }

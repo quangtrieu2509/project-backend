@@ -1,4 +1,5 @@
-import { itemStates, itemTypes } from '../constants'
+import { ItemStates, itemTypes } from '../constants'
+import { ReviewStates } from '../constants/review-states'
 import { Item, Location } from '../models'
 import { omitIsNil, transformToPrjObj } from '../utils'
 
@@ -16,7 +17,7 @@ export const getItem = async (filters: any, project: string[] = []): Promise<any
 export const getItemsOfLocation = async (locId: string): Promise<any> => {
   const results = await Item.aggregate([
     {
-      $match: { 'ancestors.id': locId, state: itemStates.ACTIVE }
+      $match: { 'ancestors.id': locId, state: ItemStates.ACTIVE }
     },
     ...lookupReview,
     {
@@ -109,7 +110,7 @@ export const getAdminItems = async (state: string): Promise<any[]> => {
       }
     },
     {
-      $sort: state === itemStates.PENDING ? { createdAt: 1 } : { adminUpdatedAt: -1 }
+      $sort: state === ItemStates.PENDING ? { createdAt: 1 } : { adminUpdatedAt: -1 }
     }
   ])
   return items
@@ -169,7 +170,7 @@ export const searchItems = async (query: string, filter: any = 'all', limit: num
     {
       $match: {
         type,
-        state: itemStates.ACTIVE,
+        state: ItemStates.ACTIVE,
         name: { $regex: query, $options: 'i' }
       }
     },
@@ -191,7 +192,7 @@ export const searchItems = async (query: string, filter: any = 'all', limit: num
       {
         $match: {
           name: { $regex: query, $options: 'i' },
-          state: itemStates.ACTIVE
+          state: ItemStates.ACTIVE
         }
       }, stdLimit,
       ...lookupReview,
@@ -225,6 +226,13 @@ const lookupReview = [
       localField: 'id',
       foreignField: 'itemId',
       pipeline: [
+        {
+          $match:
+          {
+            $expr:
+            { $eq: ['$state', ReviewStates.ACTIVE] }
+          }
+        },
         {
           $project:
           {
@@ -266,7 +274,7 @@ const addReviewDetails = (reviews: Array<{ rate: number }>): any => {
 const getItemsByPopularity = async (locId: string, type: string): Promise<any[]> => {
   const results = await Item.aggregate([
     {
-      $match: { 'ancestors.id': locId, type, state: itemStates.ACTIVE }
+      $match: { 'ancestors.id': locId, type, state: ItemStates.ACTIVE }
     },
     ...lookupReview,
     {

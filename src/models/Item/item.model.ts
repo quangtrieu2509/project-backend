@@ -1,7 +1,7 @@
 import { Schema, model } from 'mongoose'
 
 import { type IItem } from '../../types'
-import { itemStates, timeUnits } from '../../constants'
+import { ItemStates, timeUnits } from '../../constants'
 
 const itemSchema = new Schema(
   {
@@ -92,8 +92,8 @@ const itemSchema = new Schema(
     state: {
       type: String,
       required: true,
-      enum: itemStates,
-      default: itemStates.PENDING
+      enum: ItemStates,
+      default: ItemStates.PENDING
     },
     adminUpdatedAt: {
       type: Date

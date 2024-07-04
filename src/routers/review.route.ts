@@ -1,9 +1,17 @@
 import { Router } from 'express'
 
 import { reviewController as controller } from '../controllers'
-import { verifyToken } from '../middlewares'
+import { verifyAdmin, verifyToken } from '../middlewares'
 
 const router = Router()
+
+router
+  .route('/admin')
+  .get(verifyAdmin, controller.getAdminReviews)
+
+router
+  .route('/admin/:id')
+  .put(verifyAdmin, controller.changeStateReview)
 
 router
   .route('/rate/:itemId')

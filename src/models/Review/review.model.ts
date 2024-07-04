@@ -1,6 +1,7 @@
 import { Schema, model } from 'mongoose'
 
 import { type IReview } from '../../types'
+import { ReviewStates } from '../../constants/review-states'
 
 const reviewSchema = new Schema(
   {
@@ -51,10 +52,11 @@ const reviewSchema = new Schema(
       required: true,
       default: []
     },
-    isActive: {
-      type: Boolean,
+    state: {
+      type: String,
       required: true,
-      default: false
+      enum: ReviewStates,
+      default: ReviewStates.PENDING
     }
   },
   {

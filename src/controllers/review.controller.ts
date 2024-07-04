@@ -5,6 +5,7 @@ import { notiRepo, reviewRepo } from '../repositories'
 import type { RequestPayload } from '../types'
 import { uid } from 'uid'
 import { messages } from '../constants'
+import { ReviewStates } from '../constants/review-states'
 
 export const createReview = async (
   req: RequestPayload,
@@ -28,7 +29,7 @@ export const getOverviewRates = async (
 ) => {
   try {
     const { itemId } = req.params
-    const results = await reviewRepo.getOverviewRates({ itemId })
+    const results = await reviewRepo.getOverviewRates({ itemId, state: ReviewStates.ACTIVE })
 
     return res.status(httpStatus.OK).json(getApiResponse({ data: results }))
   } catch (error) {
@@ -44,7 +45,7 @@ export const getReviews = async (
   try {
     const { itemId } = req.params
     const { filter } = req.query
-    const results = await reviewRepo.getReviews({ itemId }, filter as string)
+    const results = await reviewRepo.getReviews({ itemId, state: ReviewStates.ACTIVE }, filter as string)
 
     return res.status(httpStatus.OK).json(getApiResponse({ data: results }))
   } catch (error) {
@@ -60,7 +61,7 @@ export const getProfileReviews = async (
   try {
     const id = getIdFromPayload(req.payload)
     const { userId } = req.params
-    const results = await reviewRepo.getProfileReviews({ userId })
+    const results = await reviewRepo.getProfileReviews({ userId, state: ReviewStates.ACTIVE })
 
     const reviewDTOs: any[] = []
 
@@ -74,6 +75,41 @@ export const getProfileReviews = async (
   }
 }
 
+export const getAdminReviews = async (
+  req: RequestPayload,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { state } = req.query
+
+    const items = await reviewRepo.getAdminReviews(state as string)
+
+    return res
+      .status(httpStatus.OK)
+      .json(getApiResponse({ data: items }))
+  } catch (error) {
+    next(error)
+  }
+}
+
+export const changeStateReview = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { id } = req.params
+    const { state } = req.body
+
+    await reviewRepo.updateReview({ id }, { state })
+
+    return res.status(httpStatus.OK).json(getApiResponse(messages.OK))
+  } catch (error) {
+    next(error)
+  }
+}
+
 export const getReview = async (
   req: RequestPayload,
   res: Response,
@@ -82,7 +118,7 @@ export const getReview = async (
   try {
     const userId = getIdFromPayload(req.payload)
     const { id } = req.params
-    const results = await reviewRepo.getProfileReviews({ id })
+    const results = await reviewRepo.getProfileReviews({ id, state: ReviewStates.ACTIVE })
 
     if (results.length === 0) {
       return res.status(httpStatus.NOT_FOUND).json(getApiResponse(messages.NOT_FOUND))

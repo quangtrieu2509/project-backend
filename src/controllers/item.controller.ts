@@ -3,7 +3,7 @@ import httpStatus from 'http-status'
 import { getApiResponse, getIdFromPayload } from '../utils'
 import { uid } from 'uid'
 import { itemRepo } from '../repositories'
-import { itemStates, itemTypes, messages } from '../constants'
+import { ItemStates, itemTypes, messages } from '../constants'
 import type { RequestPayload } from '../types'
 
 export const createItem = async (
@@ -237,7 +237,7 @@ export const getItemDetail = async (
   try {
     const { id } = req.params
 
-    const item = await itemRepo.getItemDetail({ id, state: itemStates.ACTIVE })
+    const item = await itemRepo.getItemDetail({ id, state: ItemStates.ACTIVE })
 
     if (item === null) {
       return res.status(httpStatus.NOT_FOUND).json(getApiResponse(messages.NOT_FOUND))
