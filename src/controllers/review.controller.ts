@@ -104,6 +104,9 @@ export const changeStateReview = async (
 
     await reviewRepo.updateReview({ id }, { state })
 
+    // send noti
+    void notiRepo.createReviewStateNoti(id, state)
+
     return res.status(httpStatus.OK).json(getApiResponse(messages.OK))
   } catch (error) {
     next(error)

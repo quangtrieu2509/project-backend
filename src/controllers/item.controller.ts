@@ -2,7 +2,7 @@ import type { NextFunction, Request, Response } from 'express'
 import httpStatus from 'http-status'
 import { getApiResponse, getIdFromPayload } from '../utils'
 import { uid } from 'uid'
-import { itemRepo } from '../repositories'
+import { itemRepo, notiRepo } from '../repositories'
 import { ItemStates, itemTypes, messages } from '../constants'
 import type { RequestPayload } from '../types'
 
@@ -163,6 +163,9 @@ export const changeStateItem = async (
     const { state } = req.body
 
     await itemRepo.updateItem({ id }, { state, adminUpdatedAt: new Date() })
+
+    // send noti
+    void notiRepo.createItemStateNoti(id, state)
 
     return res.status(httpStatus.OK).json(getApiResponse(messages.OK))
   } catch (error) {

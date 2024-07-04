@@ -1,9 +1,10 @@
 import { uid } from 'uid'
-import { Noti, Review, Trip, User } from '../models'
-import type { INoti, IReview, ITrip, IUser } from '../types'
+import { Item, Noti, Review, Trip, User } from '../models'
+import type { IItem, INoti, IReview, ITrip, IUser } from '../types'
 import { omitIsNil } from '../utils'
-import { notiTypes } from '../constants'
+import { ItemStates, notiTypes } from '../constants'
 import { sendNoti } from '../routers/socket.route'
+import { ReviewStates } from '../constants/review-states'
 
 export const createNoti = async (noti: INoti): Promise<INoti> => {
   const newNoti = await Noti.create(noti)
@@ -39,6 +40,55 @@ export const createReviewInteractNoti = async (userId: string, reviewId: string)
       url: `/review/${(review as IReview).id}`
     }
     handleSaveNoti(noti)
+  }
+}
+
+export const createItemStateNoti = async (itemId: string, state: string): Promise<void> => {
+  const item = await Item.findOne({ id: itemId }, { _id: 0, id: 1, ownerId: 1, name: 1, type: 1 })
+
+  // existed item
+  if (item !== null) {
+    if (state === ItemStates.ACTIVE) {
+      const noti = {
+        userId: item.ownerId,
+        type: notiTypes.APPROVE,
+        content: `Admin ${notiTypes.APPROVE}d your ${item.type} item <b>${item.name}</b>.`,
+        url: `/${item.type}/${(item as IItem).id}`
+      }
+      handleSaveNoti(noti)
+    } else if (state === ItemStates.INACTIVE) {
+      const noti = {
+        userId: item.ownerId,
+        type: notiTypes.DECLINE,
+        content: `Admin ${notiTypes.DECLINE}d your ${item.type} item <b>${item.name}</b>.`,
+        url: `/business/${(item as IItem).id}`
+      }
+      handleSaveNoti(noti)
+    }
+  }
+}
+
+export const createReviewStateNoti = async (reviewId: string, state: string): Promise<void> => {
+  const review = await Review.findOne({ id: reviewId }, { _id: 0, id: 1, userId: 1, content: 1 })
+
+  // existed review
+  if (review !== null) {
+    if (state === ReviewStates.ACTIVE) {
+      const noti = {
+        userId: review.userId,
+        type: notiTypes.APPROVE,
+        content: `Admin ${notiTypes.APPROVE}d your review: "${review.content}".`,
+        url: `/review/${(review as IReview).id}`
+      }
+      handleSaveNoti(noti)
+    } else if (state === ItemStates.INACTIVE) {
+      const noti = {
+        userId: review.userId,
+        type: notiTypes.DECLINE,
+        content: `Admin ${notiTypes.DECLINE}d your review: "${review.content}".`
+      }
+      handleSaveNoti(noti)
+    }
   }
 }
 

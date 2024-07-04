@@ -26,8 +26,7 @@ const notiSchema = new Schema(
       required: true
     },
     url: {
-      type: String,
-      required: true
+      type: String
     },
     isSeen: {
       type: Boolean,
