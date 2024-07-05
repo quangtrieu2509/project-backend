@@ -27,15 +27,12 @@ export const checkExisted = async (filters: any): Promise<any | null> => {
   return await User.exists(omitIsNil(filters))
 }
 
-export const getProfile = async (filters: any): Promise<any | null> => {
-  const user = await User.aggregate([
-    {
-      $match: omitIsNil(filters)
-    },
+const getContributions = (localField: string): any[] => (
+  [
     {
       $lookup: {
         from: 'trips',
-        localField: 'id',
+        localField,
         foreignField: 'ownerId',
         pipeline: [
           {
@@ -52,7 +49,7 @@ export const getProfile = async (filters: any): Promise<any | null> => {
     {
       $lookup: {
         from: 'reviews',
-        localField: 'id',
+        localField,
         foreignField: 'userId',
         pipeline: [
           {
@@ -75,7 +72,16 @@ export const getProfile = async (filters: any): Promise<any | null> => {
           ]
         }
       }
+    }
+  ]
+)
+
+export const getProfile = async (filters: any): Promise<any | null> => {
+  const user = await User.aggregate([
+    {
+      $match: omitIsNil(filters)
     },
+    ...getContributions('id'),
     {
       $lookup: {
         from: 'follows',
@@ -174,30 +180,7 @@ export const getInteractInfo = async (ownerId: string, userId: string, type: str
         }
       }
     },
-    {
-      $lookup: {
-        from: 'trips',
-        localField,
-        foreignField: 'ownerId',
-        pipeline: [
-          {
-            $match:
-            {
-              $expr:
-              { $eq: ['$privacy', privacies.PUBLIC] }
-            }
-          }
-        ],
-        as: 'contributions'
-      }
-    },
-    {
-      $addFields: {
-        contributions: {
-          $size: '$contributions'
-        }
-      }
-    },
+    ...getContributions(localField),
     {
       $lookup: {
         from: 'follows',
@@ -240,6 +223,16 @@ export const getInteractInfo = async (ownerId: string, userId: string, type: str
 export const getActivities = async (ownerId: string): Promise<any[]> => {
   const tripPromise = tripRepo.getTrips({ ownerId, privacy: privacies.PUBLIC })
   const reviewPromise = reviewRepo.getProfileReviews({ userId: ownerId, state: ReviewStates.ACTIVE })
+  const results = await Promise.all([tripPromise, reviewPromise])
+  return results
+}
+
+export const getNewFeeds = async (userId: string): Promise<any[]> => {
+  const followings = (await Follow.find({ followerId: userId }, { _id: 0, followingId: 1 }))
+    .map(e => e.followingId)
+
+  const tripPromise = tripRepo.getTrips({ ownerId: { $in: followings }, privacy: privacies.PUBLIC })
+  const reviewPromise = reviewRepo.getProfileReviews({ userId: { $in: followings }, state: ReviewStates.ACTIVE })
   const results = await Promise.all([tripPromise, reviewPromise])
   return results
 }

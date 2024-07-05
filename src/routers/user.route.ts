@@ -7,6 +7,10 @@ import { verifyToken } from '../middlewares'
 const router = Router()
 
 router
+  .route('/new-feeds')
+  .get(verifyToken, controller.getNewFeeds)
+
+router
   .route('/:id/activities')
   .get(verifyToken, controller.getActivities)
 

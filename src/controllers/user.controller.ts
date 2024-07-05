@@ -132,6 +132,43 @@ export const getActivities = async (
   }
 }
 
+export const getNewFeeds = async (
+  req: RequestPayload,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const userId = getIdFromPayload(req.payload)
+
+    const results = await userRepo.getNewFeeds(userId)
+
+    const [trips, reviews] = results
+
+    const tripDTOs: any[] = []
+    const reviewDTOs: any[] = []
+
+    for (const trip of trips) {
+      trip.type = 'trip'
+      tripDTOs.push(getTripDTO(userId, trip))
+    }
+
+    for (const review of reviews) {
+      review.type = 'review'
+      reviewDTOs.push(getReviewDTO(userId, review))
+    }
+
+    return res
+      .status(httpStatus.OK)
+      .json(getApiResponse({
+        data: [tripDTOs, reviewDTOs]
+          .flat()
+          .sort((a, b) => b.updatedAt - a.updatedAt)
+      }))
+  } catch (error) {
+    next(error)
+  }
+}
+
 const getUserDTO = (user: any) => {
   const { password, email, phoneNumber, accountType, role, isActive, ...userDTO } = user
   return userDTO
