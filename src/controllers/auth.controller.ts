@@ -9,7 +9,7 @@ import { userRepo } from '../repositories'
 import { createToken, getApiResponse } from '../utils'
 import { messages, roles, accountTypes } from '../constants'
 import type { IGoogleUser, IUser, RequestPayload } from '../types'
-import { mailer } from '../mailer'
+import { userMailer } from '../mailer'
 import { accessTokenSettings } from '../configs'
 
 export const signInByGoogle = async (
@@ -120,7 +120,7 @@ export const signUpByEmail = async (
       const user = await userRepo.createUser(newUser)
 
       const activeToken = createToken({ id: user.id }, 10 * 60) // 10 mins
-      mailer.sendActiveMail(user.email, user.familyName, activeToken)
+      userMailer.sendActiveMail(user.email, user.familyName, activeToken)
 
       // after a specific time, delete if user did not activate
       const time = new Date(Date.now() + 15 * 60 * 1000) // 15 mins

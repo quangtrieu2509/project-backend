@@ -1,10 +1,12 @@
+/* eslint-disable @typescript-eslint/restrict-template-expressions */
 import { uid } from 'uid'
 import { Item, Noti, Review, Trip, User } from '../models'
-import type { IItem, INoti, IReview, ITrip, IUser } from '../types'
+import type { INoti, IReview, ITrip, IUser } from '../types'
 import { omitIsNil } from '../utils'
 import { ItemStates, notiTypes } from '../constants'
 import { sendNoti } from '../routers/socket.route'
 import { ReviewStates } from '../constants/review-states'
+import { itemMailer, reviewMailer } from '../mailer'
 
 export const createNoti = async (noti: INoti): Promise<INoti> => {
   const newNoti = await Noti.create(noti)
@@ -44,50 +46,135 @@ export const createReviewInteractNoti = async (userId: string, reviewId: string)
 }
 
 export const createItemStateNoti = async (itemId: string, state: string): Promise<void> => {
-  const item = await Item.findOne({ id: itemId }, { _id: 0, id: 1, ownerId: 1, name: 1, type: 1 })
+  const item = await Item.aggregate([
+    {
+      $match: { id: itemId }
+    },
+    {
+      $lookup: {
+        from: 'users',
+        localField: 'ownerId',
+        foreignField: 'id',
+        pipeline: [
+          {
+            $project: {
+              _id: 0,
+              id: 1,
+              familyName: 1,
+              email: 1
+            }
+          }
+        ],
+        as: 'owner'
+      }
+    },
+    {
+      $project: {
+        _id: 0,
+        id: 1,
+        type: 1,
+        name: 1,
+        owner: { $arrayElemAt: ['$owner', 0] }
+      }
+    }
+  ])
 
   // existed item
-  if (item !== null) {
+  if (item.length !== 0) {
+    const i = item[0]
     if (state === ItemStates.ACTIVE) {
       const noti = {
-        userId: item.ownerId,
+        userId: i.owner.id,
         type: notiTypes.APPROVE,
-        content: `Admin ${notiTypes.APPROVE}d your ${item.type} item <b>${item.name}</b>.`,
-        url: `/${item.type}/${(item as IItem).id}`
+        content: `Admin ${notiTypes.APPROVE}d your ${i.type} item <b>${i.name}</b>.`,
+        url: `/${i.type}/${i.id}`
       }
       handleSaveNoti(noti)
+      itemMailer.sendApprovedItemMail(i.owner.email, i.owner.familyName, i.name)
     } else if (state === ItemStates.INACTIVE) {
       const noti = {
-        userId: item.ownerId,
+        userId: i.owner.id,
         type: notiTypes.DECLINE,
-        content: `Admin ${notiTypes.DECLINE}d your ${item.type} item <b>${item.name}</b>.`,
-        url: `/business/${(item as IItem).id}`
+        content: `Admin ${notiTypes.DECLINE}d your ${i.type} item <b>${i.name}</b>.`,
+        url: `/business/${i.id}`
       }
       handleSaveNoti(noti)
+      itemMailer.sendDeclinedItemMail(i.owner.email, i.owner.familyName, i.name)
     }
   }
 }
 
 export const createReviewStateNoti = async (reviewId: string, state: string): Promise<void> => {
-  const review = await Review.findOne({ id: reviewId }, { _id: 0, id: 1, userId: 1, content: 1 })
+  const review = await Review.aggregate([
+    {
+      $match: { id: reviewId }
+    },
+    {
+      $lookup: {
+        from: 'users',
+        localField: 'userId',
+        foreignField: 'id',
+        pipeline: [
+          {
+            $project: {
+              _id: 0,
+              id: 1,
+              familyName: 1,
+              email: 1
+            }
+          }
+        ],
+        as: 'user'
+      }
+    },
+    {
+      $lookup: {
+        from: 'items',
+        localField: 'itemId',
+        foreignField: 'id',
+        pipeline: [
+          {
+            $project: {
+              _id: 0,
+              id: 1,
+              name: 1
+            }
+          }
+        ],
+        as: 'item'
+      }
+    },
+    {
+      $project: {
+        _id: 0,
+        id: 1,
+        content: 1,
+        user: { $arrayElemAt: ['$user', 0] },
+        item: { $arrayElemAt: ['$item', 0] }
+      }
+    }
+  ])
 
   // existed review
-  if (review !== null) {
+  if (review.length !== 0) {
+    const rv = review[0]
     if (state === ReviewStates.ACTIVE) {
       const noti = {
-        userId: review.userId,
+        userId: rv.user.id,
         type: notiTypes.APPROVE,
-        content: `Admin ${notiTypes.APPROVE}d your review: "${review.content}".`,
-        url: `/review/${(review as IReview).id}`
+        content: `Admin ${notiTypes.APPROVE}d your review: "${rv.content}".`,
+        url: `/review/${rv.id}`
       }
       handleSaveNoti(noti)
+      reviewMailer.sendApprovedReviewMail(rv.user.email, rv.user.familyName, rv.item.name)
     } else if (state === ItemStates.INACTIVE) {
       const noti = {
-        userId: review.userId,
+        userId: rv.user.id,
         type: notiTypes.DECLINE,
-        content: `Admin ${notiTypes.DECLINE}d your review: "${review.content}".`
+        content: `Admin ${notiTypes.DECLINE}d your review: "${rv.content}".`
       }
       handleSaveNoti(noti)
+      reviewMailer.sendDeclinedReviewMail(rv.user.email, rv.user.familyName, rv.item.name)
     }
   }
 }
