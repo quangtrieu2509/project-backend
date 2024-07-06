@@ -1,7 +1,7 @@
 import type { NextFunction, Response } from 'express'
 import httpStatus from 'http-status'
 import { getApiResponse, getIdFromPayload } from '../utils'
-import { bookingRepo } from '../repositories'
+import { bookingRepo, notiRepo } from '../repositories'
 import type { RequestPayload } from '../types'
 import { uid } from 'uid'
 import { messages } from '../constants'
@@ -14,6 +14,9 @@ export const createBooking = async (
   try {
     const userId = getIdFromPayload(req.payload)
     const newBooking = await bookingRepo.createBooking({ ...req.body, userId, id: uid() })
+
+    // send noti
+    void notiRepo.createNewBookingNoti(newBooking.id, newBooking.itemId)
 
     return res.status(httpStatus.OK).json(getApiResponse({ data: newBooking }))
   } catch (error) {
@@ -28,9 +31,17 @@ export const updateBooking = async (
 ) => {
   try {
     const userId = getIdFromPayload(req.payload)
-    const booking = await bookingRepo.updateBooking({ userId, id: req.params.id }, req.body)
+    const { state } = req.body
+    const booking = await bookingRepo.updateBooking({ userId, id: req.params.id }, { state })
 
-    if (booking === null) return res.status(httpStatus.BAD_REQUEST).json(getApiResponse(messages.BAD_REQUEST))
+    if (booking === null) {
+      return res
+        .status(httpStatus.BAD_REQUEST)
+        .json(getApiResponse(messages.BAD_REQUEST))
+    }
+
+    // send noti
+    void notiRepo.createBizBookingNoti(booking.id, state)
 
     return res.status(httpStatus.OK).json(getApiResponse(messages.OK))
   } catch (error) {
@@ -45,9 +56,17 @@ export const updateBusinessBooking = async (
 ) => {
   try {
     const { itemId, id } = req.params
-    const booking = await bookingRepo.updateBooking({ itemId, id }, req.body)
+    const { state } = req.body
+    const booking = await bookingRepo.updateBooking({ itemId, id }, { state })
 
-    if (booking === null) return res.status(httpStatus.BAD_REQUEST).json(getApiResponse(messages.BAD_REQUEST))
+    if (booking === null) {
+      return res
+        .status(httpStatus.BAD_REQUEST)
+        .json(getApiResponse(messages.BAD_REQUEST))
+    }
+
+    // send noti
+    void notiRepo.createUserBookingNoti(booking.id, state)
 
     return res.status(httpStatus.OK).json(getApiResponse(messages.OK))
   } catch (error) {

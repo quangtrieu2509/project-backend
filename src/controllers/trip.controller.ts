@@ -49,6 +49,30 @@ export const getTrip = async (
   }
 }
 
+export const deleteTrip = async (
+  req: RequestPayload,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { id } = req.params
+    const ownerId = getIdFromPayload(req.payload)
+    const trip = await tripRepo.findTrip({ id, ownerId })
+
+    if (trip === null) {
+      return res
+        .status(httpStatus.NOT_FOUND)
+        .json(getApiResponse(messages.NOT_FOUND))
+    }
+
+    await tripRepo.deleteTrip(id)
+
+    return res.status(httpStatus.OK).json(getApiResponse(messages.OK))
+  } catch (error) {
+    next(error)
+  }
+}
+
 export const updateTrip = async (
   req: RequestPayload,
   res: Response,

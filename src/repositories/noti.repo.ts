@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 import { uid } from 'uid'
-import { Item, Noti, Review, Trip, User } from '../models'
+import { Booking, Item, Noti, Review, Trip, User } from '../models'
 import type { INoti, IReview, ITrip, IUser } from '../types'
 import { omitIsNil } from '../utils'
-import { ItemStates, notiTypes } from '../constants'
+import { bookingStates, ItemStates, notiTypes } from '../constants'
 import { sendNoti } from '../routers/socket.route'
 import { ReviewStates } from '../constants/review-states'
 import { itemMailer, reviewMailer } from '../mailer'
@@ -11,6 +11,122 @@ import { itemMailer, reviewMailer } from '../mailer'
 export const createNoti = async (noti: INoti): Promise<INoti> => {
   const newNoti = await Noti.create(noti)
   return await newNoti.toObject()
+}
+
+export const createNewBookingNoti = async (bookingId: string, itemId: string): Promise<void> => {
+  const item = await Item.findOne({ id: itemId }, { _id: 0, id: 1, ownerId: 1, name: 1, type: 1 })
+
+  // existed item
+  if (item !== null) {
+    const noti = {
+      userId: item.ownerId,
+      type: notiTypes.BOOKING,
+      content: `Your ${item.type} <b>${item.name}</b> had a new booking: <span class="font-semibold">${bookingId}</span>.`,
+      url: `/business/${item.id}?tab=bookings`
+    }
+    handleSaveNoti(noti)
+  }
+}
+
+export const createUserBookingNoti = async (bookingId: string, state: string): Promise<void> => {
+  const booking = await Booking.aggregate([
+    {
+      $match: { id: bookingId }
+    },
+    {
+      $lookup: {
+        from: 'items',
+        localField: 'itemId',
+        foreignField: 'id',
+        pipeline: [
+          {
+            $project: {
+              _id: 0,
+              id: 1,
+              name: 1
+            }
+          }
+        ],
+        as: 'item'
+      }
+    },
+    {
+      $project: {
+        _id: 0,
+        id: 1,
+        userId: 1,
+        item: { $arrayElemAt: ['$item', 0] }
+      }
+    }
+  ])
+
+  // existed booking
+  if (booking.length !== 0) {
+    const b = booking[0]
+
+    if (state === bookingStates.CONFIRMED) {
+      const noti = {
+        userId: b.userId,
+        type: notiTypes.APPROVE,
+        content: `Your booking <span class="font-semibold">${b.id}</span> was confirmed by <b>${b.item.name}</b>.`,
+        url: '/bookings?tab=confirmed'
+      }
+      handleSaveNoti(noti)
+    } else if (state === bookingStates.CANCELLED) {
+      const noti = {
+        userId: b.userId,
+        type: notiTypes.DECLINE,
+        content: `Your booking <span class="font-semibold">${b.id}</span> was cancelled by <b>${b.item.name}</b>.`,
+        url: '/bookings?tab=cancelled'
+      }
+      handleSaveNoti(noti)
+    }
+  }
+}
+
+export const createBizBookingNoti = async (bookingId: string, state: string): Promise<void> => {
+  const booking = await Booking.aggregate([
+    {
+      $match: { id: bookingId }
+    },
+    {
+      $lookup: {
+        from: 'items',
+        localField: 'itemId',
+        foreignField: 'id',
+        pipeline: [
+          {
+            $project: {
+              _id: 0,
+              id: 1,
+              name: 1,
+              ownerId: 1
+            }
+          }
+        ],
+        as: 'item'
+      }
+    },
+    {
+      $project: {
+        _id: 0,
+        id: 1,
+        item: { $arrayElemAt: ['$item', 0] }
+      }
+    }
+  ])
+
+  // existed booking && user cancelled booking
+  if (booking !== null && state === bookingStates.CANCELLED) {
+    const b = booking[0]
+    const noti = {
+      userId: b.item.ownerId,
+      type: notiTypes.DECLINE,
+      content: `The booking <span class="font-semibold">${b.id}</span> of <b>${b.item.name}</b> was cancelled by user.`,
+      url: `/business/${b.item.id}?tab=bookings&state=cancelled`
+    }
+    handleSaveNoti(noti)
+  }
 }
 
 export const createTripInteractNoti = async (userId: string, tripId: string): Promise<void> => {

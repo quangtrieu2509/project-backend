@@ -57,16 +57,16 @@ export const searchListLocations = async (query: string): Promise<any[]> => {
 }
 
 export const getBreadcrumb = async (filters: any): Promise<any | null> => {
-  const loc = await Location.findOne(omitIsNil(filters), { _id: 0 })
+  const loc = await Location.findOne(omitIsNil(filters), { _id: 0, images: 0, description: 0 })
 
   if (loc === null) return loc
 
-  const { ancestors, id, name, level, slug } = loc
+  const { ancestors, id, name, level, slug, coordinates } = loc
   ancestors.reverse().push({
     id, name, level, slug
   })
 
-  return ancestors
+  return { breadcrumb: ancestors, coordinates }
 }
 
 export const searchLocations = async (query: string, limit: number = 6): Promise<any[]> => {

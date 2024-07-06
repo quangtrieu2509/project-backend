@@ -36,7 +36,7 @@ router
 
 router
   .route('/:slug/breadcrumb')
-  .get(verifyToken, controller.getBreadcrumb)
+  .get(controller.getBreadcrumb)
 
 router
   .route('/:slug')

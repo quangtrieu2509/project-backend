@@ -25,6 +25,14 @@ export const removeItem = async (id: string): Promise<any | null> => {
   return await Promise.all([savedItemPromise, itineraryItemPromise])
 }
 
+export const deleteTrip = async (id: string): Promise<any | null> => {
+  const sItemPromise = SavedItem.deleteMany({ tripId: id })
+  const iItemPromise = ItineraryItem.deleteMany({ tripId: id })
+  const interactPromise = TripInteract.deleteMany({ tripId: id })
+  const tripPromise = Trip.findOneAndDelete({ id })
+  return await Promise.all([sItemPromise, iItemPromise, interactPromise, tripPromise])
+}
+
 export const updateSavedItem = async (id: string, data: any): Promise<any> => {
   return await SavedItem.findOneAndUpdate({ id }, data)
 }

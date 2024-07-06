@@ -43,6 +43,7 @@ router
   .get(verifyToken, controller.getTrip)
   .put(verifyToken, controller.updateTrip)
   .post(verifyToken, controller.interactTrip)
+  .delete(verifyToken, controller.deleteTrip)
 
 router
   .route('/')

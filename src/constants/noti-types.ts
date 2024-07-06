@@ -2,5 +2,6 @@ export const notiTypes = {
   LIKE: 'like',
   FOLLOW: 'follow',
   APPROVE: 'approve',
-  DECLINE: 'decline'
+  DECLINE: 'decline',
+  BOOKING: 'booking'
 }
