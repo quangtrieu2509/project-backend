@@ -23,6 +23,10 @@ router
   .get(verifyToken, controller.getProfile)
   .post(verifyToken, controller.interactUser)
 
+router
+  .route('/')
+  .put(verifyToken, controller.updateProfile)
+
 // router
 //   .route('/')
 //   .post(validation.createUser, controller.createUser)

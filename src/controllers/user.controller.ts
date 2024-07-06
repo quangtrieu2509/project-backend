@@ -43,6 +43,28 @@ export const getProfile = async (
   }
 }
 
+export const updateProfile = async (
+  req: RequestPayload,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const id = getIdFromPayload(req.payload)
+    const user = await userRepo.updateUser({ id }, req.body)
+    if (user !== null) {
+      return res
+        .status(httpStatus.OK)
+        .json(getApiResponse(messages.OK))
+    } else {
+      return res
+        .status(httpStatus.NOT_FOUND)
+        .json(getApiResponse(messages.NOT_FOUND))
+    }
+  } catch (error) {
+    next(error)
+  }
+}
+
 export const interactUser = async (
   req: RequestPayload,
   res: Response,
