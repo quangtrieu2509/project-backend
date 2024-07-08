@@ -19,10 +19,11 @@ export const updateLocation = async (filters: any, data: any): Promise<ILocation
 
 export const getLocations = async (parentId?: string): Promise<any> => {
   if (parentId !== undefined) {
-    const ancestors = await getBreadcrumb({ id: parentId })
+    const loc = await getBreadcrumb({ id: parentId })
 
-    if (ancestors === null) return { ancestors: [], locations: [] }
+    if (loc === null) return { ancestors: [], locations: [] }
 
+    const ancestors = loc.breadcrumb
     const { level, id } = ancestors[ancestors.length - 1]
     const locs = await Location.find({ ancestors: { $elemMatch: { id } }, level: (+level) + 1 }, { _id: 0 })
     return { ancestors, locations: locs }
